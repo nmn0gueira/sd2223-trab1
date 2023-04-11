@@ -1,5 +1,8 @@
 package sd2223.trab1.api.rest;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.util.List;
 
 import jakarta.ws.rs.Consumes;

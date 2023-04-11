@@ -24,7 +24,7 @@ public interface UsersService {
 	/**
 	 * Obtains the information on the user identified by name.
 	 * @param name name of the user
-	 * @param password password of the user
+	 * @param pwd password of the user
 	 * @throws UsersException otherwise
 	 */
 	@WebMethod
@@ -32,7 +32,7 @@ public interface UsersService {
 	
 	/**
 	 * Modifies the information of a user. Values of null in any field of the user will be 
-	 * considered as if the the fields is not to be modified (the id cannot be modified).
+	 * considered as if the fields is not to be modified (the id cannot be modified).
 	 * @param name name of the user
 	 * @param pwd password of the user
 	 * @param user Updated information
@@ -58,5 +58,14 @@ public interface UsersService {
 	 * @throws UsersException otherwise
 	 */
 	@WebMethod
-	List<User> searchUsers(String pattern) throws UsersException;	
+	List<User> searchUsers(String pattern) throws UsersException;
+
+	/**
+	 * Verifies if the password is correct for the user identified by name.
+	 * @param name name of the user
+	 * @param pwd password of the user
+	 * @throws UsersException otherwise
+	 */
+	@WebMethod
+	void verifyPassword(String name, String pwd) throws UsersException;
 }
