@@ -68,7 +68,19 @@ public class JavaFeeds implements Feeds {
     public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
         Log.info("removeFromPersonalFeed : user = " + user + "; mid = " + mid + "; pwd = " + pwd);
 
-        // Check if user exists and password is correct
+        //ur.getUser(user, pwd);  // Check if user exists and password is correct
+
+        target = client.target("http://0.0.0.0:8080/rest/users/");
+        Response r = target.path( user )
+                .queryParam(UsersService.PWD, pwd).request()
+                .accept(MediaType.APPLICATION_JSON)
+                .get();
+
+        if (r.getStatus() == Status.NOT_FOUND.getStatusCode())
+            return Result.error(ErrorCode.NOT_FOUND);
+
+        if (r.getStatus() == Status.FORBIDDEN.getStatusCode())
+            return Result.error(ErrorCode.FORBIDDEN);
 
         Map<Long, Message> messages = personalFeeds.get(user);
 
@@ -78,7 +90,7 @@ public class JavaFeeds implements Feeds {
             return Result.error(ErrorCode.NOT_FOUND);
         }
 
-        return Result.ok(); // Erro 204???
+        return Result.ok();
     }
 
     @Override
