@@ -28,7 +28,7 @@ public class JavaFeeds implements Feeds {
 
     private static final Logger Log = Logger.getLogger(JavaFeeds.class.getName());
 
-    @Override  // Check if user exists through usersResource to check password
+    @Override  // Check if user exists through usersResource to check password ADICIONAR AOS FEEDS PESSOAIS DOS SUBSCRIBERS
     public Result<Long> postMessage(String user, String pwd, Message msg)  {
         Log.info("postMessage : user = " + user + "; pwd = " + pwd + "; msg = " + msg);
 

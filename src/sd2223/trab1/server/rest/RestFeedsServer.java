@@ -15,7 +15,7 @@ public class RestFeedsServer {
         System.setProperty("java.net.preferIPv4Stack", "true");
     }
 
-    public static final int PORT = 8080;
+    public static final int PORT = 8082;
     public static final String SERVICE = "FeedsService";
     private static final String SERVER_URI_FMT = "http://%s:%s/rest";
 
