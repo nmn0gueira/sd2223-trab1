@@ -19,7 +19,7 @@ public class RestResource {
 	}
 
 	/**
-	 * Translates a Result<T> to a HTTP Status code
+	 * Translates a Result<T> to an HTTP Status code
 	 */
 	private static Status statusCodeFrom(Result<?> result) {
 		switch (result.error()) {
