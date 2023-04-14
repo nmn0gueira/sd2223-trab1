@@ -16,6 +16,9 @@ public class SoapUsersServer {
 	private static Logger Log = Logger.getLogger(SoapUsersServer.class.getName());
 
 	public static void main(String[] args) throws Exception {
+
+		String domainName = args[0];
+		int serverId = Integer.parseInt(args[1]);
 		
 //		System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
 //		System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");

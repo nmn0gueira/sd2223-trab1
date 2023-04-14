@@ -16,11 +16,14 @@ public class RestUsersServer {
 	}
 
 	public static final int PORT = 8080;
-	public static final String SERVICE = "UsersService";
+	public static final String SERVICE = "users";
 	private static final String SERVER_URI_FMT = "http://%s:%s/rest";
 
 	public static void main(String[] args) {
 		try {
+
+			String domainName = args[0];
+			int serverId = Integer.parseInt(args[1]);
 
 			ResourceConfig config = new ResourceConfig();
 			config.register(RestUsersResource.class);

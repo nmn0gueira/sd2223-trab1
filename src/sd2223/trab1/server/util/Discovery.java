@@ -67,7 +67,7 @@ class DiscoveryImpl implements Discovery {
 
 	private static Discovery singleton;
 
-	private Map<String, List<URI>> discoveredServices;
+	private final Map<String, List<URI>> discoveredServices;
 
 	synchronized static Discovery getInstance() {
 		if (singleton == null) {
@@ -77,6 +77,7 @@ class DiscoveryImpl implements Discovery {
 	}
 
 	private DiscoveryImpl() {
+		this.discoveredServices = new HashMap<>(1024);
 		this.startListener();
 	}
 
@@ -108,16 +109,22 @@ class DiscoveryImpl implements Discovery {
 
 	@Override
 	public URI[] knownUrisOf(String serviceName, int minEntries) {
-		List<URI> uris = null;
-		while (uris == null || uris.size() < minEntries) {
-			try {
-				Thread.sleep(DISCOVERY_RETRY_TIMEOUT);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		// Wait until we receive at least minEntries announcements
+		while (true) {
+			synchronized (discoveredServices) {
+				List<URI> uris = discoveredServices.get(serviceName);
+				if (uris == null) {
+					try {
+						discoveredServices.wait(DISCOVERY_RETRY_TIMEOUT);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				else if (uris.size() >= minEntries) 	// If there are at least minEntries services, return them
+					return uris.toArray(new URI[0]);
+
 			}
-			uris = this.discoveredServices.get(serviceName);
 		}
-		return uris.toArray(new URI[uris.size()]);
 
 	}
 
@@ -128,7 +135,6 @@ class DiscoveryImpl implements Discovery {
 		new Thread(() -> {
 			try (var ms = new MulticastSocket(DISCOVERY_ADDR.getPort())) {
 				ms.joinGroup(DISCOVERY_ADDR, NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
-				this.discoveredServices = new HashMap<>(1024);
 				for (;;) {
 					try {
 						var pkt = new DatagramPacket(new byte[MAX_DATAGRAM_SIZE], MAX_DATAGRAM_SIZE);
@@ -142,11 +148,9 @@ class DiscoveryImpl implements Discovery {
 							var serviceName = parts[0];
 							var serviceURI = URI.create(parts[1]);
 							synchronized (discoveredServices) {
-								List<URI> uris = discoveredServices.computeIfAbsent(serviceName, k -> new ArrayList<>());
-								if (!uris.contains(serviceURI)) {
-									uris.add(serviceURI);
-									discoveredServices.notifyAll();
-								}
+								discoveredServices.computeIfAbsent(serviceName, k -> new ArrayList<>()).add(serviceURI);
+								discoveredServices.notifyAll();
+
 							}
 						}
 

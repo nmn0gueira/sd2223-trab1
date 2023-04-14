@@ -9,13 +9,16 @@ import jakarta.xml.ws.Endpoint;
 
 public class SoapFeedsServer {
 
-    public static final int PORT = 8083;
+    public static final int PORT = 8081;
     public static final String SERVICE_NAME = "feeds";
     public static String SERVER_BASE_URI = "http://%s:%s/soap";
 
     private static Logger Log = Logger.getLogger(SoapFeedsServer.class.getName());
 
     public static void main(String[] args) throws Exception {
+
+        String domainName = args[0];
+        int serverId = Integer.parseInt(args[1]);
 
 //		System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
 //		System.setProperty("com.sun.xml.internal.ws.transport.http.client.HttpTransportPipe.dump", "true");
