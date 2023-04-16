@@ -12,7 +12,9 @@ import sd2223.trab1.api.java.Feeds;
 import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.java.Result.ErrorCode;
 import sd2223.trab1.api.rest.UsersService;
+import sd2223.trab1.server.util.Discovery;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +26,7 @@ public class JavaFeeds implements Feeds {
 
     private final Map<String, Map<Long,String>> subs = new HashMap<>();
     private final Map<String, Map<Long,Message>> personalFeeds = new HashMap<>();
+    Discovery discovery = Discovery.getInstance();
     private final Client client = ClientBuilder.newClient();
     private WebTarget target;
 
@@ -32,6 +35,7 @@ public class JavaFeeds implements Feeds {
     @Override  // Check if user exists through usersResource to check password ADICIONAR AOS FEEDS PESSOAIS DOS SUBSCRIBERS
     public Result<Long> postMessage(String user, String pwd, Message msg)  {
         Log.info("postMessage : user = " + user + "; pwd = " + pwd + "; msg = " + msg);
+        URI[] uris = discovery.knownUrisOf("users", 1);
 
         /* HttpURLConnection con = (HttpURLConnection) new URL("http://0.0.0.0:8080/rest/users/" + user + "?pwd=" + pwd).openConnection();
         con.setRequestMethod("GET");
@@ -41,7 +45,7 @@ public class JavaFeeds implements Feeds {
         con.connect();*/
 
         //ur.getUser(user, pwd);  // Check if user exists and password is correct
-        target = client.target("http://0.0.0.0:8080/rest/users/");
+        target = client.target(uris[0]);
         Response r = target.path( user )
                 .queryParam(UsersService.PWD, pwd).request()
                 .accept(MediaType.APPLICATION_JSON)
@@ -67,10 +71,11 @@ public class JavaFeeds implements Feeds {
     @Override
     public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
         Log.info("removeFromPersonalFeed : user = " + user + "; mid = " + mid + "; pwd = " + pwd);
+        URI[] uris = discovery.knownUrisOf("users", 1);
 
         //ur.getUser(user, pwd);  // Check if user exists and password is correct
 
-        target = client.target("http://0.0.0.0:8080/rest/users/");
+        target = client.target(uris[0]);
         Response r = target.path( user )
                 .queryParam(UsersService.PWD, pwd).request()
                 .accept(MediaType.APPLICATION_JSON)
