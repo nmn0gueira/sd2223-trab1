@@ -93,7 +93,7 @@ public class JavaUsers implements Users {
 	}
 
 	@Override
-	public Result<List> searchUsers(String pattern) {
+	public Result<List<User>> searchUsers(String pattern) {
 		Log.info("searchUsers : pattern = " + pattern);
 
 		if (pattern == null) {

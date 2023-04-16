@@ -115,7 +115,7 @@ public class JavaFeeds implements Feeds {
     }
 
     @Override // ESTA ERRADO
-    public Result<List> getMessages(String user, long time) {
+    public Result<List<Message>> getMessages(String user, long time) {
         Log.info("getMessages : user = " + user + "; time = " + time);
 
         Map<Long, Message> messages = personalFeeds.get(user);
@@ -145,7 +145,7 @@ public class JavaFeeds implements Feeds {
     }
 
     @Override
-    public Result<List> listSubs(String user) {
+    public Result<List<String>> listSubs(String user) {
         return null;
     }
 }

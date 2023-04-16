@@ -11,12 +11,12 @@ public interface Feeds {
 	
 	Result<Message> getMessage(String user, long mid);
 	
-	Result<List> getMessages(String user, long time);
+	Result<List<Message>> getMessages(String user, long time);
 	
 	Result<Void> subUser(String user, String userSub, String pwd);
 	
 	Result<Void> unsubscribeUser( String user, String userSub, String pwd);
 
-	Result<List> listSubs(String user);
+	Result<List<String>> listSubs(String user);
 
 }

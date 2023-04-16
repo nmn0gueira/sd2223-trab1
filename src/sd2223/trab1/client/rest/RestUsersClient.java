@@ -3,6 +3,7 @@ package sd2223.trab1.client.rest;
 import java.net.URI;
 import java.util.List;
 
+import jakarta.ws.rs.core.GenericType;
 import sd2223.trab1.api.User;
 import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.java.Users;
@@ -64,11 +65,11 @@ public class RestUsersClient extends RestClient implements Users {
 		return super.toJavaResult(r, User.class);
 	}
 
-	private Result<List> clt_searchUsers(String pattern) {
+	private Result<List<User>> clt_searchUsers(String pattern) {
 		Response r = target.queryParam(UsersService.QUERY, pattern).request()
 				.accept(MediaType.APPLICATION_JSON).get();
 
-		return super.toJavaResult(r, List.class);
+		return super.toJavaResult(r, new GenericType<List<User>>() {});
 	}
 	
 	@Override
@@ -97,7 +98,7 @@ public class RestUsersClient extends RestClient implements Users {
 	}
 
 	@Override
-	public Result<List> searchUsers(String pattern) {
+	public Result<List<User>> searchUsers(String pattern) {
 		return super.reTry(() -> clt_searchUsers(pattern));
 	}
 }

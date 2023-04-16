@@ -70,6 +70,20 @@ public class RestClient {
 		}
 	}
 
+	protected <T> Result<T> toJavaResult(Response r, GenericType<T> entityType) {
+		try {
+			var status = r.getStatusInfo().toEnum();
+			if (status == Status.OK && r.hasEntity())
+				return ok(r.readEntity(entityType));
+			else
+			if( status == Status.NO_CONTENT) return ok();
+
+			return error(getErrorCodeFrom(status.getStatusCode()));
+		} finally {
+			r.close();
+		}
+	}
+
 	public static ErrorCode getErrorCodeFrom(int status) {
 		return switch (status) {
 		case 200, 209 -> ErrorCode.OK;

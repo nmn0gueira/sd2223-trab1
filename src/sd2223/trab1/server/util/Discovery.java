@@ -11,12 +11,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * <p>A class interface to perform service discovery based on periodic 
+ * <p>A class interface to perform service discovery based on periodic
  * announcements over multicast communication.</p>
- * 
+ *
  */
 
 public interface Discovery {
@@ -49,7 +50,7 @@ public interface Discovery {
  * Implementation of the multicast discovery service
  */
 class DiscoveryImpl implements Discovery {
-	
+
 	private static final Logger Log = Logger.getLogger(Discovery.class.getName());
 
 	// The pre-agreed multicast endpoint assigned to perform discovery.
@@ -77,6 +78,7 @@ class DiscoveryImpl implements Discovery {
 	}
 
 	private DiscoveryImpl() {
+		Log.setLevel(Level.OFF);
 		this.discoveredServices = new HashMap<>(1024);
 		this.startListener();
 	}
@@ -120,9 +122,9 @@ class DiscoveryImpl implements Discovery {
 						e.printStackTrace();
 					}
 				}
-				else if (uris.size() >= minEntries) 	// If there are at least minEntries services, return them
+				else if (uris.size() >= minEntries) {// If there are at least minEntries services, return them
 					return uris.toArray(new URI[0]);
-
+				}
 			}
 		}
 
