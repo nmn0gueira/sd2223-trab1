@@ -32,7 +32,7 @@ public class JavaUsers implements Users {
 			Log.info("User already exists.");
 			return Result.error( ErrorCode.CONFLICT);
 		}
-		return Result.ok(user.getName());
+		return Result.ok(user.getName().concat("@" + user.getDomain()));
 	}
 
 	@Override
@@ -65,10 +65,22 @@ public class JavaUsers implements Users {
 	public Result<User> updateUser(String name, String pwd, User user) {
 		Log.info("updateUser : user = " + name + "; pwd = " + pwd + " ; user = " + user);
 
-		verifyPassword(name, pwd); // All the necessary exceptions get thrown in this method
+		Result<Void> result = verifyPassword(name, pwd); // All necessary checks are done in this method
+		if(!result.isOK())
+			return Result.error(result.error());
 
-		users.put(name, user);
-		return Result.ok(user);
+		if (!user.getName().equals(name)) // Name cannot be updatedn
+			return Result.error(ErrorCode.BAD_REQUEST);
+
+		// Only update the fields that are not null, name and domain cannot be updated
+		User u = users.computeIfPresent(name, (key, userToUpdate) -> { // PROVAVELMENTE PODE SE USAR APENAS COMPUTE
+			if (user.getPwd() != null)
+				userToUpdate.setPwd(user.getPwd());
+			if (user.getDisplayName() != null)
+				userToUpdate.setDisplayName(user.getDisplayName());
+			return userToUpdate;
+		});
+		return Result.ok(u);
 
 	}
 
@@ -76,18 +88,9 @@ public class JavaUsers implements Users {
 	public Result<User> deleteUser(String name, String pwd) {
 		Log.info("deleteUser : user = " + name + "; pwd = " + pwd);
 
-		var user = users.get(name);
-
-		// Check if user exists
-		if(user == null) {
-			Log.info("User does not exist.");
-			return Result.error(ErrorCode.NOT_FOUND);
-		}
-
-		if(!user.getPwd().equals(pwd)) {
-			Log.info("Password is incorrect.");
-			return Result.error(ErrorCode.FORBIDDEN);
-		}
+		Result<Void> result = verifyPassword(name, pwd); // All necessary checks are done in this method
+		if(!result.isOK())
+			return Result.error(result.error());
 
 		return Result.ok(users.remove(name));
 	}

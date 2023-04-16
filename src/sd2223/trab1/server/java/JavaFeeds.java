@@ -2,6 +2,7 @@ package sd2223.trab1.server.java;
 
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -23,7 +24,7 @@ public class JavaFeeds implements Feeds {
 
     private final Map<String, Map<Long,String>> subs = new HashMap<>();
     private final Map<String, Map<Long,Message>> personalFeeds = new HashMap<>();
-    private Client client;
+    private final Client client = ClientBuilder.newClient();
     private WebTarget target;
 
     private static final Logger Log = Logger.getLogger(JavaFeeds.class.getName());
@@ -40,7 +41,6 @@ public class JavaFeeds implements Feeds {
         con.connect();*/
 
         //ur.getUser(user, pwd);  // Check if user exists and password is correct
-
         target = client.target("http://0.0.0.0:8080/rest/users/");
         Response r = target.path( user )
                 .queryParam(UsersService.PWD, pwd).request()
