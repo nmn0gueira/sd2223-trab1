@@ -158,12 +158,18 @@ public class JavaFeeds implements Feeds {
 
     @Override
     public Result<Void> createFeed(String user) {
-        return null;
+        Log.info("createFeed: user = " + user);
+
+        personalFeeds.put(user, new HashMap<>());
+        return Result.ok();
     }
 
     @Override
     public Result<Void> deleteFeed(String user) {
-        return null;
+        Log.info("deleteFeed: user = " + user);
+
+        personalFeeds.remove(user);
+        return Result.ok();
     }
 
     private Result<Void> verifyUser(String user, String pwd) {
