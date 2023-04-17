@@ -6,11 +6,9 @@ import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import sd2223.trab1.api.Message;
-import sd2223.trab1.api.User;
 import sd2223.trab1.api.java.Feeds;
 import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.rest.FeedsService;
-import sd2223.trab1.api.rest.UsersService;
 
 import java.net.URI;
 import java.util.List;
@@ -91,6 +89,24 @@ public class RestFeedsClient extends RestClient implements Feeds {
         return super.toJavaResult(r, new GenericType<List<String>>() {});
     }
 
+    private Result<Void> clt_createFeed(String user) {
+
+        Response r = target.path("create").path(user)
+                .request()
+                .post(Entity.json(null));
+
+        return super.toJavaResult(r, Void.class);
+    }
+
+    private Result<Void> clt_deleteFeed(String user) {
+
+        Response r = target.path("delete").path(user)
+                .request()
+                .delete();
+
+        return super.toJavaResult(r, Void.class);
+    }
+
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
         return super.reTry(() -> clt_postMessage(user, pwd, msg));
@@ -124,6 +140,16 @@ public class RestFeedsClient extends RestClient implements Feeds {
     @Override
     public Result<List<String>> listSubs(String user) {
         return super.reTry(() -> clt_listSubs(user));
+    }
+
+    @Override
+    public Result<Void> createFeed(String user) {
+       return super.reTry(() -> clt_createFeed(user));
+    }
+
+    @Override
+    public Result<Void> deleteFeed(String user) {
+        return super.reTry(() -> clt_deleteFeed(user));
     }
 
 }

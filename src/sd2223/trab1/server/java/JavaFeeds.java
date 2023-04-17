@@ -17,7 +17,8 @@ import java.util.logging.Logger;
 
 public class JavaFeeds implements Feeds {
 
-    private final Map<String, Map<Long,String>> subs = new HashMap<>();
+    private final Map<String, List<String>> subscribers = new HashMap<>(); // Users that follow a given user
+    private final Map<String, List<String>> subscribedTo = new HashMap<>(); // Users that a given user is subscribed to
     private final Map<String, Map<Long,Message>> personalFeeds = new HashMap<>();
     private final Discovery discovery = Discovery.getInstance();
     private final int serverId;
@@ -34,19 +35,9 @@ public class JavaFeeds implements Feeds {
     public Result<Long> postMessage(String user, String pwd, Message msg)  {
         Log.info("postMessage : user = " + user + "; pwd = " + pwd + "; msg = " + msg);
 
-        String[] userInfo = user.split("@");
-        String userName = userInfo[0];
-        String domain = userInfo[1];
-
-        URI[] uris = discovery.knownUrisOf("users".concat("." + domain), 1);
-
-        var users = UsersClientFactory.get(uris[0]);
-
-        var res = users.verifyPassword(userName, pwd);
-        if (!res.isOK()) {  // If request failed
+        Result<Void> res = verifyUser(user, pwd);
+        if (!res.isOK())
             return Result.error(res.error());
-        }
-
         // Check if message is valid
         if (msg == null) {
             Log.info("Message object invalid.");
@@ -56,7 +47,16 @@ public class JavaFeeds implements Feeds {
         msg.setId(seqNum * 256 + serverId); // Set new message id
         seqNum++;
 
+        // Add message to own personal feed of user
         personalFeeds.computeIfAbsent(user, k -> new HashMap<>()).put(msg.getId(), msg);
+
+        // Add message to personal feeds of subscribers (PODE PROPAGAR A MENSAGEM PARA USERS FORA DO DOMINIO)
+        List<String> subs = subscribers.get(user);
+        if (subs != null) {
+            for (String s : subs) {
+                personalFeeds.computeIfAbsent(s, k -> new HashMap<>()).put(msg.getId(), msg);
+            }
+        }
 
         return Result.ok(msg.getId());
     }
@@ -65,18 +65,9 @@ public class JavaFeeds implements Feeds {
     public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
         Log.info("removeFromPersonalFeed : user = " + user + "; mid = " + mid + "; pwd = " + pwd);
 
-        String[] userInfo = user.split("@");
-        String userName = userInfo[0];
-        String domain = userInfo[1];
-
-        URI[] uris = discovery.knownUrisOf("users".concat("." + domain), 1);
-
-        var users = UsersClientFactory.get(uris[0]);
-
-        var res = users.verifyPassword(userName, pwd);
-        if (!res.isOK()) {  // If request failed throw given error
+        Result<Void> res = verifyUser(user, pwd);
+        if (!res.isOK())
             return Result.error(res.error());
-        }
 
         Map<Long, Message> messages = personalFeeds.get(user);
 
@@ -126,16 +117,67 @@ public class JavaFeeds implements Feeds {
 
     @Override
     public Result<Void> subUser(String user, String userSub, String pwd) {
-        return null;
+        Log.info("subUser : user = " + user + "; userSub = " + userSub + "; pwd = " + pwd);
+
+        Result<Void> res = verifyUser(user, pwd);
+        if (!res.isOK())
+            return Result.error(res.error());
+
+        // Check if userSub exists (CAN BE OUSTIDE DOMAIN)
+        if (!personalFeeds.containsKey(userSub)) {
+            Log.info("User to subscribe to does not exist.");
+            return Result.error(ErrorCode.NOT_FOUND);
+        }
+
+        // Add user subscription
+        subscribers.computeIfAbsent(userSub, k -> new ArrayList<>()).add(user);
+        subscribedTo.computeIfAbsent(user, k -> new ArrayList<>()).add(userSub);
+
+        return Result.ok();
     }
 
     @Override
     public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
+        Log.info("unsubscribeUser : user = " + user + "; userSub = " + userSub + "; pwd = " + pwd);
         return null;
     }
 
     @Override
     public Result<List<String>> listSubs(String user) {
+        Log.info("listSubs : user = " + user);
+
+        List<String> subs = subscribedTo.get(user);
+
+        if (subs == null) {
+            Log.info("User does not exist");
+            return Result.error(ErrorCode.NOT_FOUND);
+        }
+
+        return Result.ok(subs);
+    }
+
+    @Override
+    public Result<Void> createFeed(String user) {
         return null;
+    }
+
+    @Override
+    public Result<Void> deleteFeed(String user) {
+        return null;
+    }
+
+    private Result<Void> verifyUser(String user, String pwd) {
+        String[] userInfo = user.split("@");
+        String userName = userInfo[0];
+        String domain = userInfo[1];
+        URI uri = discovery.knownUrisOf("users".concat("." + domain), 1)[0];
+
+        var users = UsersClientFactory.get(uri);
+
+        var res = users.verifyPassword(userName, pwd);
+        if (!res.isOK()) {  // If request failed throw given error
+            return Result.error(res.error());
+        }
+        return Result.ok();
     }
 }

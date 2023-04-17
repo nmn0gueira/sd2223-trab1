@@ -103,4 +103,26 @@ public interface FeedsService {
 	 */
 	@WebMethod
 	List<String> listSubs(String user) throws FeedsException;
+
+	/**
+	 * Creates a new feed for the user.
+	 * A user must contact the server of her domain directly (i.e., this operation should not be
+	 * propagated to other domain)
+	 *
+	 * @param user user being accessed (format user@domain)
+	 * @throws 	FORBIDDEN if the user already has a feed
+	 */
+	@WebMethod
+	void createFeed(String user) throws FeedsException;
+
+	/**
+	 * Deletes the feed of the user.
+	 * A user must contact the server of her domain directly (i.e., this operation should not be
+	 * propagated to other domain)
+	 *
+	 * @param user user being accessed (format user@domain)
+	 * @throws 	FORBIDDEN if the user does not have a feed
+	 */
+	@WebMethod
+	void deleteFeed(String user) throws FeedsException;
 }

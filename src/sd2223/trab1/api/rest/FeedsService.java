@@ -138,4 +138,30 @@ public interface FeedsService {
 	@Path("/sub/list/{" + USER + "}")
 	@Produces(MediaType.APPLICATION_JSON)
 	List<String> listSubs(@PathParam(USER) String user);
+
+	/**
+	 * Creates a feed for a user.
+	 * A user must contact the server of her domain directly (i.e., this operation should not be
+	 * propagated to other domain)
+	 *
+	 * @param user user being accessed (format user@domain)
+	 * @return 	204 if ok
+	 * 			404 is generated if the user does not exist
+	 */
+	@POST
+	@Path("/create/{" + USER + "}")
+	void createFeed(@PathParam(USER) String user);
+
+	/**
+	 * Deletes a feed for a user.
+	 * A user must contact the server of her domain directly (i.e., this operation should not be
+	 * propagated to other domain)
+	 *
+	 * @param user user being accessed (format user@domain)
+	 * @return 	204 if ok
+	 * 			404 is generated if the user does not exist
+	 */
+	@DELETE
+	@Path("/delete/{" + USER + "}")
+	void deleteFeed(@PathParam(USER) String user);
 }
