@@ -8,17 +8,14 @@ import sd2223.trab1.client.UsersClientFactory;
 import sd2223.trab1.server.util.Discovery;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 
 public class JavaFeeds implements Feeds {
 
-    private final Map<String, List<String>> subscribers = new HashMap<>(); // Users that follow a given user
-    private final Map<String, List<String>> subscribedTo = new HashMap<>(); // Users that a given user is subscribed to
+    private final Map<String, Set<String>> subscribers = new HashMap<>(); // Users that follow a given user
+    private final Map<String, Set<String>> subscribedTo = new HashMap<>(); // Users that a given user is subscribed to
     private final Map<String, Map<Long,Message>> personalFeeds = new HashMap<>();
     private final Discovery discovery = Discovery.getInstance();
     private final int serverId;
@@ -51,7 +48,7 @@ public class JavaFeeds implements Feeds {
         personalFeeds.get(user).put(msg.getId(), msg);
 
         // Add message to personal feeds of subscribers (PODE PROPAGAR A MENSAGEM PARA USERS FORA DO DOMINIO)
-        List<String> subs = subscribers.get(user);
+        Set<String> subs = subscribers.get(user);
         if (subs != null) {
             for (String s : subs) {
                 personalFeeds.get(s).put(msg.getId(), msg);
@@ -129,9 +126,9 @@ public class JavaFeeds implements Feeds {
             return Result.error(ErrorCode.NOT_FOUND);
         }
 
-        // Add user subscription
-        subscribers.computeIfAbsent(userSub, k -> new ArrayList<>()).add(user);
-        subscribedTo.computeIfAbsent(user, k -> new ArrayList<>()).add(userSub);
+        // Manage user subscriptions
+        subscribers.get(userSub).add(user);
+        subscribedTo.get(user).add(userSub);
 
         return Result.ok();
     }
@@ -149,8 +146,8 @@ public class JavaFeeds implements Feeds {
             Log.info("User to unsubscribe from does not exist.");
             return Result.error(ErrorCode.NOT_FOUND);
         }
-        subscribedTo.get(user).remove(userSub); // Remove user from subscribedTo list (MIGHT BE TOO COMPLEX)
-        subscribers.get(userSub).remove(user); // Remove user from subscribers list (MIGHT BE TOO COMPLEX)
+        subscribedTo.get(user).remove(userSub);
+        subscribers.get(userSub).remove(user);
 
         return Result.ok();
     }
@@ -159,14 +156,14 @@ public class JavaFeeds implements Feeds {
     public Result<List<String>> listSubs(String user) {
         Log.info("listSubs : user = " + user);
 
-        List<String> subs = subscribedTo.get(user);
+        Set<String> subs = subscribedTo.get(user);
 
         if (subs == null) {
             Log.info("User does not exist");
             return Result.error(ErrorCode.NOT_FOUND);
         }
 
-        return Result.ok(subs);
+        return Result.ok(new ArrayList<>(subs));
     }
 
     @Override
@@ -174,8 +171,8 @@ public class JavaFeeds implements Feeds {
         Log.info("createFeed: user = " + user);
 
         personalFeeds.put(user, new HashMap<>());
-        subscribedTo.put(user, new ArrayList<>());
-        subscribers.put(user, new ArrayList<>());
+        subscribedTo.put(user, new HashSet<>());
+        subscribers.put(user, new HashSet<>());
 
         return Result.ok();
     }
