@@ -69,7 +69,7 @@ class DiscoveryImpl implements Discovery {
 
 	private static Discovery singleton;
 
-	private final Map<String, List<URI>> discoveredServices;
+	private final Map<String, List<URI>> discoveredServices;	// serviceName.domain -> List<URI>
 
 	synchronized static Discovery getInstance() {
 		if (singleton == null) {
@@ -146,14 +146,17 @@ class DiscoveryImpl implements Discovery {
 						var msg = new String(pkt.getData(), 0, pkt.getLength());
 						Log.info(String.format("Received: %s", msg));
 
-						var parts = msg.split(DELIMITER);
-						if (parts.length == 2) {
-							var serviceName = parts[0];
-							var serviceURI = URI.create(parts[1]);
-							synchronized (discoveredServices) {
-								discoveredServices.computeIfAbsent(serviceName, k -> new ArrayList<>()).add(serviceURI);
-								discoveredServices.notifyAll();
-
+						var parts1 = msg.split(DELIMITER); // divide URI and the rest
+						if (parts1.length == 2) {
+							var serviceURI = URI.create(parts1[1]);
+							var parts2 = parts1[0].split(":"); // divide domain and service name
+							if (parts2.length == 2) {
+								var domainName = parts2[0];
+								var serviceName = parts2[1];
+								synchronized (discoveredServices) {
+									discoveredServices.computeIfAbsent(serviceName.concat("." + domainName), k -> new ArrayList<>()).add(serviceURI);
+									discoveredServices.notifyAll();
+								}
 							}
 						}
 

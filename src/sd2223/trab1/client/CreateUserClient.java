@@ -4,7 +4,7 @@ import java.net.URI;
 
 import sd2223.trab1.api.User;
 
-public class CreateUsersClient {
+public class CreateUserClient {
 
 	public static void main(String[] args) {
 		if( args.length != 5) {

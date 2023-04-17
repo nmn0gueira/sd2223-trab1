@@ -10,8 +10,8 @@ import java.net.URI;
 public class Test {
 	public static void main(String[] args) throws Exception {
 
-		RestUsersServer.main(new String[] {"ourorg-0", "ourorg-0"} );
-		SoapUsersServer.main(new String[] {"ourorg-0", "1", "ourorg-0"} );
+		RestUsersServer.main(new String[] {"ourorg-0"} );
+		SoapUsersServer.main(new String[] {"ourorg-0", "1"} );
 		
 		var uriRest = URI.create("http://localhost:8080/rest");
 		var uriSoap = URI.create("http://localhost:8081/soap");

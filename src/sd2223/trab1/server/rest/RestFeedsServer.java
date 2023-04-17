@@ -27,7 +27,7 @@ public class RestFeedsServer {
             int serverId = Integer.parseInt(args[1]);
 
             ResourceConfig config = new ResourceConfig();
-            config.register(RestFeedsResource.class);
+            config.register(new RestFeedsResource(serverId));
             // config.register(CustomLoggingFilter.class);
 
             String ip = InetAddress.getLocalHost().getHostAddress();

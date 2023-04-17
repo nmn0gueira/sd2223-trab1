@@ -1,17 +1,10 @@
 package sd2223.trab1.server.java;
 
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.WebTarget;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 import sd2223.trab1.api.Message;
 import sd2223.trab1.api.java.Feeds;
 import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.java.Result.ErrorCode;
-import sd2223.trab1.api.rest.UsersService;
+import sd2223.trab1.client.UsersClientFactory;
 import sd2223.trab1.server.util.Discovery;
 
 import java.net.URI;
@@ -26,42 +19,42 @@ public class JavaFeeds implements Feeds {
 
     private final Map<String, Map<Long,String>> subs = new HashMap<>();
     private final Map<String, Map<Long,Message>> personalFeeds = new HashMap<>();
-    Discovery discovery = Discovery.getInstance();
-    private final Client client = ClientBuilder.newClient();
-    private WebTarget target;
+    private final Discovery discovery = Discovery.getInstance();
+    private final int serverId;
+    private long seqNum = 1;
+
 
     private static final Logger Log = Logger.getLogger(JavaFeeds.class.getName());
+
+    public JavaFeeds(int serverId) {
+        this.serverId = serverId;
+    }
 
     @Override  // Check if user exists through usersResource to check password ADICIONAR AOS FEEDS PESSOAIS DOS SUBSCRIBERS
     public Result<Long> postMessage(String user, String pwd, Message msg)  {
         Log.info("postMessage : user = " + user + "; pwd = " + pwd + "; msg = " + msg);
-        URI[] uris = discovery.knownUrisOf("users", 1);
 
-        /* HttpURLConnection con = (HttpURLConnection) new URL("http://0.0.0.0:8080/rest/users/" + user + "?pwd=" + pwd).openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("Accept", MediaType.APPLICATION_JSON);
-        con.setDoOutput(true);
-        con.setDoInput(true);
-        con.connect();*/
+        String[] userInfo = user.split("@");
+        String userName = userInfo[0];
+        String domain = userInfo[1];
 
-        //ur.getUser(user, pwd);  // Check if user exists and password is correct
-        target = client.target(uris[0]);
-        Response r = target.path( user )
-                .queryParam(UsersService.PWD, pwd).request()
-                .accept(MediaType.APPLICATION_JSON)
-                .get();
+        URI[] uris = discovery.knownUrisOf("users".concat("." + domain), 1);
 
-        if (r.getStatus() == Status.NOT_FOUND.getStatusCode())
-            throw new WebApplicationException(Status.NOT_FOUND);
+        var users = UsersClientFactory.get(uris[0]);
 
-        if (r.getStatus() == Status.FORBIDDEN.getStatusCode())
-            throw new WebApplicationException(Status.FORBIDDEN);
+        var res = users.verifyPassword(userName, pwd);
+        if (!res.isOK()) {  // If request failed
+            return Result.error(res.error());
+        }
 
-        // Check if message is valid (PODE SER QUE NAO SEJA NECESSARIO)
+        // Check if message is valid
         if (msg == null) {
             Log.info("Message object invalid.");
             return Result.error(ErrorCode.BAD_REQUEST);
         }
+
+        msg.setId(seqNum * 256 + serverId); // Set new message id
+        seqNum++;
 
         personalFeeds.computeIfAbsent(user, k -> new HashMap<>()).put(msg.getId(), msg);
 
@@ -71,25 +64,22 @@ public class JavaFeeds implements Feeds {
     @Override
     public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
         Log.info("removeFromPersonalFeed : user = " + user + "; mid = " + mid + "; pwd = " + pwd);
-        URI[] uris = discovery.knownUrisOf("users", 1);
 
-        //ur.getUser(user, pwd);  // Check if user exists and password is correct
+        String[] userInfo = user.split("@");
+        String userName = userInfo[0];
+        String domain = userInfo[1];
 
-        target = client.target(uris[0]);
-        Response r = target.path( user )
-                .queryParam(UsersService.PWD, pwd).request()
-                .accept(MediaType.APPLICATION_JSON)
-                .get();
+        URI[] uris = discovery.knownUrisOf("users".concat("." + domain), 1);
 
-        if (r.getStatus() == Status.NOT_FOUND.getStatusCode())
-            return Result.error(ErrorCode.NOT_FOUND);
+        var users = UsersClientFactory.get(uris[0]);
 
-        if (r.getStatus() == Status.FORBIDDEN.getStatusCode())
-            return Result.error(ErrorCode.FORBIDDEN);
+        var res = users.verifyPassword(userName, pwd);
+        if (!res.isOK()) {  // If request failed throw given error
+            return Result.error(res.error());
+        }
 
         Map<Long, Message> messages = personalFeeds.get(user);
 
-        // DOUBLE CHECK IF THIS IS CORRECT
         if (messages == null || !messages.remove(mid, messages.get(mid))) {
             Log.info("Message does not exist.");
             return Result.error(ErrorCode.NOT_FOUND);
@@ -103,16 +93,11 @@ public class JavaFeeds implements Feeds {
         Log.info("getMessage : user = " + user + "; mid = " + mid);
 
         Map<Long, Message> messages = personalFeeds.get(user);
+        Message msg;
 
-        // DOUBLE CHECK IF THERE IS A BETTER WAY
-        if (messages == null) {
-            Log.info("User does not exist or has no messages.");
-            return Result.error(ErrorCode.NOT_FOUND);
-        }
-        // DOUBLE CHECK IF THERE IS A BETTER WAY
-        Message msg = messages.get(mid);
-        if (msg == null) {
-            Log.info("Message does not exist.");
+        // This will check if the user exists/has no messages or if the message does not exist
+        if (messages == null || (msg = messages.get(mid)) == null) {
+            Log.info("User or message do not exist.");
             return Result.error(ErrorCode.NOT_FOUND);
         }
 
