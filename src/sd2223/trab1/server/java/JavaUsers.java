@@ -4,7 +4,9 @@ import sd2223.trab1.api.User;
 import sd2223.trab1.api.java.Users;
 import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.java.Result.ErrorCode;
+import sd2223.trab1.server.util.Discovery;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.logging.Logger;
 
 public class JavaUsers implements Users {
 	private final Map<String, User> users = new HashMap<>();
+	private final Discovery discovery = Discovery.getInstance();
 
 	private static final Logger Log = Logger.getLogger(JavaUsers.class.getName());
 
@@ -32,6 +35,10 @@ public class JavaUsers implements Users {
 			Log.info("User already exists.");
 			return Result.error( ErrorCode.CONFLICT);
 		}
+
+		URI uri = discovery.knownUrisOf("feeds".concat("." + user.getDomain()), 1)[0];
+
+
 		return Result.ok(user.getName().concat("@" + user.getDomain()));
 	}
 
