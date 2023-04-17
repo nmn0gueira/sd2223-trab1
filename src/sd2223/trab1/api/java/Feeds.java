@@ -19,8 +19,8 @@ public interface Feeds {
 
 	Result<List<String>> listSubs(String user);
 
-	Result<Void> createFeed(String user);
+	Result<Void> createFeedInfo(String user);
 
-	Result<Void> deleteFeed(String user);
+	Result<Void> deleteFeedInfo(String user);
 
 }

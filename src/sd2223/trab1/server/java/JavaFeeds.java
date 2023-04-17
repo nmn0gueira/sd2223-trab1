@@ -31,7 +31,7 @@ public class JavaFeeds implements Feeds {
         this.serverId = serverId;
     }
 
-    @Override  // Check if user exists through usersResource to check password ADICIONAR AOS FEEDS PESSOAIS DOS SUBSCRIBERS
+    @Override  // Propagate message to subscribers' feeds
     public Result<Long> postMessage(String user, String pwd, Message msg)  {
         Log.info("postMessage : user = " + user + "; pwd = " + pwd + "; msg = " + msg);
 
@@ -48,13 +48,13 @@ public class JavaFeeds implements Feeds {
         seqNum++;
 
         // Add message to own personal feed of user
-        personalFeeds.computeIfAbsent(user, k -> new HashMap<>()).put(msg.getId(), msg);
+        personalFeeds.get(user).put(msg.getId(), msg);
 
         // Add message to personal feeds of subscribers (PODE PROPAGAR A MENSAGEM PARA USERS FORA DO DOMINIO)
         List<String> subs = subscribers.get(user);
         if (subs != null) {
             for (String s : subs) {
-                personalFeeds.computeIfAbsent(s, k -> new HashMap<>()).put(msg.getId(), msg);
+                personalFeeds.get(s).put(msg.getId(), msg);
             }
         }
 
@@ -86,7 +86,7 @@ public class JavaFeeds implements Feeds {
         Map<Long, Message> messages = personalFeeds.get(user);
         Message msg;
 
-        // This will check if the user exists/has no messages or if the message does not exist
+        // This will check if the user exists or if the message does not exist
         if (messages == null || (msg = messages.get(mid)) == null) {
             Log.info("User or message do not exist.");
             return Result.error(ErrorCode.NOT_FOUND);
@@ -95,21 +95,21 @@ public class JavaFeeds implements Feeds {
         return Result.ok(msg);
     }
 
-    @Override // ESTA ERRADO
+    @Override
     public Result<List<Message>> getMessages(String user, long time) {
         Log.info("getMessages : user = " + user + "; time = " + time);
 
         Map<Long, Message> messages = personalFeeds.get(user);
 
         if (messages == null) {
-            Log.info("User does not exist or has no messages.");
+            Log.info("User does not exist.");
             return Result.error(ErrorCode.NOT_FOUND);
         }
 
         List<Message> list = new ArrayList<>();
 
         for (Message m : messages.values())
-            if (m.getCreationTime() >= time)
+            if (m.getCreationTime() > time)
                 list.add(m);
 
         return Result.ok(list);
@@ -139,7 +139,20 @@ public class JavaFeeds implements Feeds {
     @Override
     public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
         Log.info("unsubscribeUser : user = " + user + "; userSub = " + userSub + "; pwd = " + pwd);
-        return null;
+
+        Result<Void> res = verifyUser(user, pwd);
+        if (!res.isOK())
+            return Result.error(res.error());
+
+        // Check if userSub exists (CAN BE OUTSIDE DOMAIN)
+        if (subscribers.get(userSub) == null) {
+            Log.info("User to unsubscribe from does not exist.");
+            return Result.error(ErrorCode.NOT_FOUND);
+        }
+        subscribedTo.get(user).remove(userSub); // Remove user from subscribedTo list (MIGHT BE TOO COMPLEX)
+        subscribers.get(userSub).remove(user); // Remove user from subscribers list (MIGHT BE TOO COMPLEX)
+
+        return Result.ok();
     }
 
     @Override
@@ -157,18 +170,24 @@ public class JavaFeeds implements Feeds {
     }
 
     @Override
-    public Result<Void> createFeed(String user) {
+    public Result<Void> createFeedInfo(String user) {
         Log.info("createFeed: user = " + user);
 
         personalFeeds.put(user, new HashMap<>());
+        subscribedTo.put(user, new ArrayList<>());
+        subscribers.put(user, new ArrayList<>());
+
         return Result.ok();
     }
 
     @Override
-    public Result<Void> deleteFeed(String user) {
+    public Result<Void> deleteFeedInfo(String user) {
         Log.info("deleteFeed: user = " + user);
 
         personalFeeds.remove(user);
+        subscribedTo.remove(user);
+        subscribers.remove(user);
+
         return Result.ok();
     }
 
@@ -178,9 +197,7 @@ public class JavaFeeds implements Feeds {
         String domain = userInfo[1];
         URI uri = discovery.knownUrisOf("users".concat("." + domain), 1)[0];
 
-        var users = UsersClientFactory.get(uri);
-
-        var res = users.verifyPassword(userName, pwd);
+        var res = UsersClientFactory.get(uri).verifyPassword(userName, pwd);
         if (!res.isOK()) {  // If request failed throw given error
             return Result.error(res.error());
         }

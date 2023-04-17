@@ -66,12 +66,12 @@ public class SoapFeedsClient extends SoapClient implements Feeds {
     }
 
     @Override
-    public Result<Void> createFeed(String user) {
+    public Result<Void> createFeedInfo(String user) {
         return super.reTry( () -> super.toJavaResult( () -> stub().createFeed(user) ) );
     }
 
     @Override
-    public Result<Void> deleteFeed(String user) {
+    public Result<Void> deleteFeedInfo(String user) {
         return super.reTry( () -> super.toJavaResult( () -> stub().deleteFeed(user) ) );
     }
 }

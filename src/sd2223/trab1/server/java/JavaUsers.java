@@ -4,6 +4,7 @@ import sd2223.trab1.api.User;
 import sd2223.trab1.api.java.Users;
 import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.java.Result.ErrorCode;
+import sd2223.trab1.client.FeedsClientFactory;
 import sd2223.trab1.server.util.Discovery;
 
 import java.net.URI;
@@ -31,15 +32,18 @@ public class JavaUsers implements Users {
 		}
 		
 		// Insert user, checking if name already exists
-		if( users.putIfAbsent(user.getName(), user) != null ) {
+		if(users.putIfAbsent(user.getName(), user) != null) {
 			Log.info("User already exists.");
 			return Result.error( ErrorCode.CONFLICT);
 		}
 
 		URI uri = discovery.knownUrisOf("feeds".concat("." + user.getDomain()), 1)[0];
 
+		String nameAndDomain = user.getName().concat("@" + user.getDomain());
 
-		return Result.ok(user.getName().concat("@" + user.getDomain()));
+		FeedsClientFactory.get(uri).createFeedInfo(nameAndDomain);
+
+		return Result.ok(nameAndDomain);
 	}
 
 	@Override
@@ -51,7 +55,6 @@ public class JavaUsers implements Users {
 			Log.info("Name or Password null.");
 			return Result.error(ErrorCode.BAD_REQUEST);
 		}
-		
 		User user = users.get(name);			
 		// Check if user exists 
 		if( user == null ) {
@@ -80,7 +83,7 @@ public class JavaUsers implements Users {
 			return Result.error(ErrorCode.BAD_REQUEST);
 
 		// Only update the fields that are not null, name and domain cannot be updated
-		User u = users.computeIfPresent(name, (key, userToUpdate) -> { // PROVAVELMENTE PODE SE USAR APENAS COMPUTE
+		User u = users.computeIfPresent(name, (key, userToUpdate) -> {
 			if (user.getPwd() != null)
 				userToUpdate.setPwd(user.getPwd());
 			if (user.getDisplayName() != null)
@@ -99,7 +102,15 @@ public class JavaUsers implements Users {
 		if(!result.isOK())
 			return Result.error(result.error());
 
-		return Result.ok(users.remove(name));
+		var user = users.remove(name);
+
+		String domain = user.getDomain();
+
+		URI uri = discovery.knownUrisOf("feeds".concat("." + domain), 1)[0];
+
+		FeedsClientFactory.get(uri).deleteFeedInfo(user.getName().concat("@" + domain));
+
+		return Result.ok(user);
 	}
 
 	@Override

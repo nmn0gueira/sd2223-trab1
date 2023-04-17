@@ -33,8 +33,8 @@ public class RestFeedsServer {
             String ip = InetAddress.getLocalHost().getHostAddress();
             String serverURI = String.format(SERVER_URI_FMT, ip, PORT);
 
-            //Discovery discovery = Discovery.getInstance();
-            //discovery.announce(SERVICE, serverURI);
+            Discovery discovery = Discovery.getInstance();
+            discovery.announce(domainName, SERVICE, serverURI);
             JdkHttpServerFactory.createHttpServer(URI.create(serverURI.replace(ip, "0.0.0.0")), config);
 
             Log.info(String.format("%s Server ready @ %s\n", SERVICE, serverURI));
