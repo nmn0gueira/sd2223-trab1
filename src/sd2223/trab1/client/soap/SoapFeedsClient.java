@@ -74,4 +74,14 @@ public class SoapFeedsClient extends SoapClient implements Feeds {
     public Result<Void> deleteFeedInfo(String user) {
         return super.reTry( () -> super.toJavaResult( () -> stub().deleteFeed(user) ) );
     }
+
+    @Override
+    public Result<Void> propagateMessage(String sub, Message msg) {
+        return super.reTry( () -> super.toJavaResult( () -> stub().propagateMessage(sub, msg) ) );
+    }
+
+    @Override
+    public Result<Void> propagateSub(String user, String userSub) {
+        return super.reTry( () -> super.toJavaResult( () -> stub().propagateSub(user, userSub) ) );
+    }
 }

@@ -168,6 +168,7 @@ public interface FeedsService {
 	 *
 	 * @param sub subscriber that receives the message
 	 * @param msg the message object to be propagated
+	 * @return 	204 if ok
 	 */
 	@POST
 	@Path("/propagate")
@@ -178,6 +179,7 @@ public interface FeedsService {
 	 *
 	 * @param user user that sent the subscription
 	 * @param userSub the user that was subscribed
+	 * @return 	204 if ok
 	 */
 	@POST
 	@Path("/subscriber/{" + USER + "}/{" + USERSUB + "}")

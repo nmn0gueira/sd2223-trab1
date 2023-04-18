@@ -4,6 +4,7 @@ import sd2223.trab1.api.Message;
 import sd2223.trab1.api.java.Feeds;
 import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.java.Result.ErrorCode;
+import sd2223.trab1.client.FeedsClientFactory;
 import sd2223.trab1.client.UsersClientFactory;
 import sd2223.trab1.server.util.Discovery;
 
@@ -190,6 +191,26 @@ public class JavaFeeds implements Feeds {
         }
 
         return Result.ok();
+    }
+
+    @Override
+    public Result<Void> propagateMessage(String sub, Message msg) {
+        String[] userInfo = sub.split("@");
+        String userName = userInfo[0];
+        String domain = userInfo[1];
+        URI uri = discovery.knownUrisOf("users".concat("." + domain), 1)[0];
+
+        var res = FeedsClientFactory.get(uri).addMessage(userName, msg);
+    }
+
+    @Override
+    public Result<Void> propagateSub(String user, String userSub) {
+        return null;
+    }
+
+    @Override
+    public Result<Void> addMessage(String user, Message msg) {
+        return null;
     }
 
     private Result<Void> verifyUser(String user, String pwd) {
