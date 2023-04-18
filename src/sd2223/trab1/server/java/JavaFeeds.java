@@ -49,7 +49,7 @@ public class JavaFeeds implements Feeds {
 
         // Add message to personal feeds of subscribers (PODE PROPAGAR A MENSAGEM PARA USERS FORA DO DOMINIO)
         Set<String> subs = subscribers.get(user);
-        if (subs != null) {
+        if (!subs.isEmpty()) {
             for (String s : subs) {
                 personalFeeds.get(s).put(msg.getId(), msg);
             }
@@ -184,6 +184,9 @@ public class JavaFeeds implements Feeds {
         personalFeeds.remove(user);
         subscribedTo.remove(user);
         subscribers.remove(user);
+        for (String u: subscribedTo.keySet()) {
+            subscribers.get(u).remove(user);    // TALVEZ PRECISE DE COMPUTE IF PRESENT
+        }
 
         return Result.ok();
     }
