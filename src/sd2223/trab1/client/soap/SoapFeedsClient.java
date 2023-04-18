@@ -89,4 +89,8 @@ public class SoapFeedsClient extends SoapClient implements Feeds {
     public Result<Void> addMessage(Message msg) {
         return super.reTry( () -> super.toJavaResult( () -> stub().addMessage(msg) ) );
     }
+
+    public Result<Void> changeSubscriptionStatus(String user, String userSub) {
+        return super.reTry( () -> super.toJavaResult( () -> stub().changeSubscriptionStatus(user, userSub) ) );
+    }
 }
