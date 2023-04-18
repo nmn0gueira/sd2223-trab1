@@ -194,13 +194,16 @@ public class JavaFeeds implements Feeds {
     }
 
     @Override
-    public Result<Void> propagateMessage(String sub, Message msg) {
-        String[] userInfo = sub.split("@");
+    public Result<Void> propagateMessage(Message msg) {
+        String user = msg.getUser();
+        String[] userInfo = user.split("@");
         String userName = userInfo[0];
         String domain = userInfo[1];
         URI uri = discovery.knownUrisOf("users".concat("." + domain), 1)[0];
 
-        var res = FeedsClientFactory.get(uri).addMessage(userName, msg);
+        var res = FeedsClientFactory.get(uri).addMessage(msg);
+
+        return null;
     }
 
     @Override
@@ -209,7 +212,7 @@ public class JavaFeeds implements Feeds {
     }
 
     @Override
-    public Result<Void> addMessage(String user, Message msg) {
+    public Result<Void> addMessage(Message msg) {
         return null;
     }
 

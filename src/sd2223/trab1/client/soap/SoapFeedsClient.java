@@ -76,12 +76,17 @@ public class SoapFeedsClient extends SoapClient implements Feeds {
     }
 
     @Override
-    public Result<Void> propagateMessage(String sub, Message msg) {
-        return super.reTry( () -> super.toJavaResult( () -> stub().propagateMessage(sub, msg) ) );
+    public Result<Void> propagateMessage(Message msg) {
+        return super.reTry( () -> super.toJavaResult( () -> stub().propagateMessage(msg) ) );
     }
 
     @Override
     public Result<Void> propagateSub(String user, String userSub) {
         return super.reTry( () -> super.toJavaResult( () -> stub().propagateSub(user, userSub) ) );
+    }
+
+    @Override
+    public Result<Void> addMessage(Message msg) {
+        return null;
     }
 }

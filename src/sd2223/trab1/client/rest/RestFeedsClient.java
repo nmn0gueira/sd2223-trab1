@@ -107,6 +107,24 @@ public class RestFeedsClient extends RestClient implements Feeds {
         return super.toJavaResult(r, Void.class);
     }
 
+    private Result<Void> clt_propagateMessage(Message msg) {
+
+        Response r = target.path("propagate")
+                .request()
+                .post(Entity.entity(msg, MediaType.APPLICATION_JSON));
+
+        return super.toJavaResult(r, Void.class);
+    }
+
+    private Result<Void> clt_propagateSub(String user, String userSub) {
+
+        Response r = target.path("subscribe").path(user).path(userSub)
+                .request()
+                .post(Entity.json(null));
+
+        return super.toJavaResult(r, Void.class);
+    }
+
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
         return super.reTry(() -> clt_postMessage(user, pwd, msg));
@@ -150,6 +168,19 @@ public class RestFeedsClient extends RestClient implements Feeds {
     @Override
     public Result<Void> deleteFeedInfo(String user) {
         return super.reTry(() -> clt_deleteFeed(user));
+    }
+
+    @Override
+    public Result<Void> propagateMessage(Message msg) {
+        return super.reTry(() -> clt_propagateMessage(msg));
+    }
+
+    @Override
+    public Result<Void> propagateSub(String user, String userSub) {return super.reTry(() -> clt_propagateSub(user, userSub));}
+
+    @Override
+    public Result<Void> addMessage(Message msg) {
+        return null;
     }
 
 }

@@ -127,10 +127,10 @@ public interface FeedsService {
 	/**
 	 * Propagates a message to a subscriber outside the domain
 	 *
-	 * @param sub subscriber that receives the message
 	 * @param msg the message object to be propagated
 	 */
-	void propagateMessage(String sub, Message msg) throws FeedsException;
+	@WebMethod
+	void propagateMessage(Message msg) throws FeedsException;
 
 	/**
 	 * Propagates a subscription to a user outside the domain
@@ -138,5 +138,14 @@ public interface FeedsService {
 	 * @param user user that sent the subscription
 	 * @param userSub the user that was subscribed
 	 */
+	@WebMethod
 	void propagateSub(String user, String userSub) throws FeedsException;
+
+	/**
+	 * Receives a message from a subscriber outside the domain
+	 *
+	 * @param msg the message object to be received
+	 */
+	@WebMethod
+	void addMessage(Message msg) throws FeedsException;
 }
