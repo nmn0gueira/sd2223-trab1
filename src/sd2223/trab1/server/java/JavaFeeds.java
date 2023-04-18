@@ -55,7 +55,7 @@ public class JavaFeeds implements Feeds {
         for (String s : subs) {
             personalFeeds.get(s).put(msg.getId(), msg);
         }
-        //propagateMessage(msg);
+        propagateMessage(msg);
 
         return Result.ok(msg.getId());
     }
@@ -142,6 +142,7 @@ public class JavaFeeds implements Feeds {
             }
 
             //Propagate unsubscription to other server
+            propagateSubChange(user, userSub);
 
         }
 
@@ -178,6 +179,7 @@ public class JavaFeeds implements Feeds {
             }
 
             //Propagate unsubscription to other server
+            propagateSubChange(user, userSub);
 
         }
 
@@ -229,11 +231,11 @@ public class JavaFeeds implements Feeds {
 
     @Override
     public Result<Void> propagateMessage(Message msg) {
-        String user = msg.getUser();
-        String domain = user.split("@")[1];
+        String domain = msg.getDomain();
+        String user = msg.getUser().concat("@" + domain);
 
-        for (String u: subscribers.get(user).keySet()) {
-            if (!u.split("@")[1].equals(domain)) {
+        for (String d: subscribers.get(user).keySet()) {
+            if (d.equals(domain)) {
                 URI uri = discovery.knownUrisOf("users".concat("." + domain), 1)[0];
                 FeedsClientFactory.get(uri).addMessage(msg);
             }
@@ -243,7 +245,7 @@ public class JavaFeeds implements Feeds {
     }
 
     @Override
-    public Result<Void> propagateSub(String user, String userSub) {
+    public Result<Void> propagateSubChange(String user, String userSub) {
         String userSubDomain = user.split("@")[1];
         URI uri = discovery.knownUrisOf("users".concat("." + userSubDomain), 1)[0];
         FeedsClientFactory.get(uri).changeSubStatus(user, userSub);
@@ -272,7 +274,7 @@ public class JavaFeeds implements Feeds {
         Log.info("changeSubStatus : user = " + user + "; userSub = " + userSub);
 
         String userDomain = user.split("@")[1];
-        Set<String> set = subscribers.get(userSub).get(userDomain);
+        Set<String> set = subscribers.get(userSub).computeIfAbsent(userDomain, k -> new HashSet<>());
 
         if (set.contains(user)) {
             set.remove(user);

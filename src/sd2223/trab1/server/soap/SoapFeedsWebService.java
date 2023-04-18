@@ -73,7 +73,7 @@ public class SoapFeedsWebService extends SoapWebService<FeedsException> implemen
 
     @Override
     public void propagateSub(String user, String userSub) throws FeedsException {
-        super.fromJavaResult(impl.propagateSub(user, userSub));
+        super.fromJavaResult(impl.propagateSubChange(user, userSub));
     }
 
     @Override

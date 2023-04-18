@@ -81,7 +81,7 @@ public class SoapFeedsClient extends SoapClient implements Feeds {
     }
 
     @Override
-    public Result<Void> propagateSub(String user, String userSub) {
+    public Result<Void> propagateSubChange(String user, String userSub) {
         return super.reTry( () -> super.toJavaResult( () -> stub().propagateSub(user, userSub) ) );
     }
 

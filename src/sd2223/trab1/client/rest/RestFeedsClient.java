@@ -194,7 +194,7 @@ public class RestFeedsClient extends RestClient implements Feeds {
     }
 
     @Override
-    public Result<Void> propagateSub(String user, String userSub) {
+    public Result<Void> propagateSubChange(String user, String userSub) {
         return super.reTry(() -> clt_propagateSub(user, userSub));
     }
 

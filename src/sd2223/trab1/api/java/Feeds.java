@@ -25,7 +25,7 @@ public interface Feeds {
 
 	Result<Void> propagateMessage(Message msg);
 
-	Result<Void> propagateSub(String user, String userSub);
+	Result<Void> propagateSubChange(String user, String userSub);
 
 	Result<Void> addMessage(Message msg);
 
