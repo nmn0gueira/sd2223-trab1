@@ -146,7 +146,6 @@ public interface FeedsService {
 	 *
 	 * @param user user being accessed (format user@domain)
 	 * @return 	204 if ok
-	 * 			404 is generated if the user does not exist
 	 */
 	@POST
 	@Path("/create/{" + USER + "}")
@@ -159,7 +158,6 @@ public interface FeedsService {
 	 *
 	 * @param user user being accessed (format user@domain)
 	 * @return 	204 if ok
-	 * 			404 is generated if the user does not exist
 	 */
 	@DELETE
 	@Path("/delete/{" + USER + "}")

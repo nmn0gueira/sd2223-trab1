@@ -121,7 +121,7 @@ public class JavaFeeds implements Feeds {
         if (!res.isOK())
             return Result.error(res.error());
 
-        // Check if userSub exists (CAN BE OUSTIDE DOMAIN)
+        // Check if userSub exists (CAN BE OUTSIDE DOMAIN)
         if (!personalFeeds.containsKey(userSub)) {
             Log.info("User to subscribe to does not exist.");
             return Result.error(ErrorCode.NOT_FOUND);
