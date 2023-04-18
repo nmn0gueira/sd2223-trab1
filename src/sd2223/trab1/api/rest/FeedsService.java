@@ -5,14 +5,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.util.List;
 
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import sd2223.trab1.api.Message;
 
@@ -184,7 +177,23 @@ public interface FeedsService {
 	@Path("/subscriber/{" + USER + "}/{" + USERSUB + "}")
 	void propagateSub(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
 
+	/**
+	 * Receives a message from a subscribed-to user outside the domain
+	 *
+	 * @param msg user that sent the subscription
+	 * @return 	204 if ok
+	 */
 	@POST
 	@Path("/add")
-	void addMessage(Message message);
+	void addMessage(Message msg);
+
+	/**
+	 * Changes the status of a subscription i.e. unsubscribes if a user is subscribed and subscribes if not
+	 *
+	 * @param user
+	 * @param userSub
+	 */
+	@PUT
+	@Path("/changesub/{" + USER + "}/{" + USERSUB + "}")
+	void changeSubscriptionStatus(String user, String userSub);
 }
