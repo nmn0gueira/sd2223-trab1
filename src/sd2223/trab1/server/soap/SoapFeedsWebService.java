@@ -81,5 +81,9 @@ public class SoapFeedsWebService extends SoapWebService<FeedsException> implemen
         super.fromJavaResult(impl.addMessage(msg));
     }
 
+    @Override
+    public void changeSubscriptionStatus(String user, String userSub) throws FeedsException {
+        super.fromJavaResult(impl.changeSubscriptionStatus(user, userSub));
+    }
 
 }
