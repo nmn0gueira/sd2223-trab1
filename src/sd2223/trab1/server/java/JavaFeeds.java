@@ -122,21 +122,26 @@ public class JavaFeeds implements Feeds {
         if (!res.isOK())
             return Result.error(res.error());
 
-        // Check if userSub exists (CAN BE OUTSIDE DOMAIN)
-        if (!personalFeeds.containsKey(userSub)) {
-            Log.info("User to subscribe to does not exist.");
-            return Result.error(ErrorCode.NOT_FOUND);
-        }
-
-        // Manage user subscriptions
         String userDomain = user.split("@")[1];
         String userSubDomain = userSub.split("@")[1];
         if (userSubDomain.equals(userDomain)) {
-            // If userSub is in the same domain as user
+            // Check if userSub exists (if it is in this domain)
+            if (subscribers.get(userSub) == null) {
+                Log.info("User to unsubscribe from does not exist.");
+                return Result.error(ErrorCode.NOT_FOUND);
+            }
+
             subscribers.get(userSub).computeIfAbsent(userSubDomain, k -> new HashSet<>()).add(user);
+
         } else {
-            // If userSub is in a different domain than user
-            //Propagate subscription to other server
+            // Check if userSub exists (if it is in another domain)
+            Result<Void> res2 = verifyUser(userSub, "");
+            if (res2.error() == ErrorCode.NOT_FOUND) {
+                Log.info("User to unsubscribe from does not exist.");
+                return Result.error(ErrorCode.NOT_FOUND);
+            }
+
+            //Propagate unsubscription to other server
 
         }
 
@@ -149,23 +154,29 @@ public class JavaFeeds implements Feeds {
     public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
         Log.info("unsubscribeUser : user = " + user + "; userSub = " + userSub + "; pwd = " + pwd);
 
-        Result<Void> res = verifyUser(user, pwd);
-        if (!res.isOK())
-            return Result.error(res.error());
-
-        // Check if userSub exists (CAN BE OUTSIDE DOMAIN)
-        if (subscribers.get(userSub) == null) {
-            Log.info("User to unsubscribe from does not exist.");
-            return Result.error(ErrorCode.NOT_FOUND);
-        }
+        Result<Void> res1 = verifyUser(user, pwd);
+        if (!res1.isOK())
+            return Result.error(res1.error());
 
         String userDomain = user.split("@")[1];
         String userSubDomain = userSub.split("@")[1];
         if (userSubDomain.equals(userDomain)) {
-            // If userSub is in the same domain as user
+            // Check if userSub exists (if it is in this domain)
+            if (subscribers.get(userSub) == null) {
+                Log.info("User to unsubscribe from does not exist.");
+                return Result.error(ErrorCode.NOT_FOUND);
+            }
+
             subscribers.get(userSub).get(userDomain).remove(user);
+
         } else {
-            // If userSub is in a different domain than user
+            // Check if userSub exists (if it is in another domain)
+            Result<Void> res2 = verifyUser(userSub, "");
+            if (res2.error() == ErrorCode.NOT_FOUND) {
+                Log.info("User to unsubscribe from does not exist.");
+                return Result.error(ErrorCode.NOT_FOUND);
+            }
+
             //Propagate unsubscription to other server
 
         }
@@ -238,7 +249,7 @@ public class JavaFeeds implements Feeds {
         FeedsClientFactory.get(uri).changeSubscriptionStatus(user, userSub);
 
 
-        return null;
+        return Result.ok();
     }
 
     @Override
