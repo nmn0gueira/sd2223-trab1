@@ -125,6 +125,15 @@ public class RestFeedsClient extends RestClient implements Feeds {
         return super.toJavaResult(r, Void.class);
     }
 
+    private Result<Void> clt_addMessage(Message msg) {
+
+        Response r = target.path("add")
+                .request()
+                .post(Entity.entity(msg, MediaType.APPLICATION_JSON));
+
+        return super.toJavaResult(r, Void.class);
+    }
+
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
         return super.reTry(() -> clt_postMessage(user, pwd, msg));
@@ -176,11 +185,13 @@ public class RestFeedsClient extends RestClient implements Feeds {
     }
 
     @Override
-    public Result<Void> propagateSub(String user, String userSub) {return super.reTry(() -> clt_propagateSub(user, userSub));}
+    public Result<Void> propagateSub(String user, String userSub) {
+        return super.reTry(() -> clt_propagateSub(user, userSub));
+    }
 
     @Override
     public Result<Void> addMessage(Message msg) {
-        return null;
+        return super.reTry(() -> clt_addMessage(msg));
     }
 
 }
