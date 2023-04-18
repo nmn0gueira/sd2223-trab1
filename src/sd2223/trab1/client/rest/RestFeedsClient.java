@@ -118,7 +118,7 @@ public class RestFeedsClient extends RestClient implements Feeds {
 
     private Result<Void> clt_propagateSub(String user, String userSub) {
 
-        Response r = target.path("subscribe").path(user).path(userSub)
+        Response r = target.path("subscriber").path(user).path(userSub)
                 .request()
                 .post(Entity.json(null));
 
@@ -136,9 +136,11 @@ public class RestFeedsClient extends RestClient implements Feeds {
 
     private Result<Void> clt_changeSubStatus(String user, String userSub) {
 
-        Response r = target.path("sub").path("change").path(user).path(userSub)
+        Entity<?> empty = Entity.text("");
+
+        Response r = target.path("subscriber").path(user).path(userSub)
                 .request()
-                .put(Entity.json(null));
+                .put(empty);
 
         return super.toJavaResult(r, Void.class);
     }
