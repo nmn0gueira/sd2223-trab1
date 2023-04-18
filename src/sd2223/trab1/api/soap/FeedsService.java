@@ -110,7 +110,6 @@ public interface FeedsService {
 	 * propagated to other domain)
 	 *
 	 * @param user user being accessed (format user@domain)
-	 * @throws 	FORBIDDEN if the user already has a feed
 	 */
 	@WebMethod
 	void createFeed(String user) throws FeedsException;
@@ -121,8 +120,23 @@ public interface FeedsService {
 	 * propagated to other domain)
 	 *
 	 * @param user user being accessed (format user@domain)
-	 * @throws 	FORBIDDEN if the user does not have a feed
 	 */
 	@WebMethod
 	void deleteFeed(String user) throws FeedsException;
+
+	/**
+	 * Propagates a message to a subscriber outside the domain
+	 *
+	 * @param sub subscriber that receives the message
+	 * @param msg the message object to be propagated
+	 */
+	void propagateMessage(String sub, Message msg) throws FeedsException;
+
+	/**
+	 * Propagates a subscription to a user outside the domain
+	 *
+	 * @param user user that sent the subscription
+	 * @param userSub the user that was subscribed
+	 */
+	void propagateSub(String user, String userSub) throws FeedsException;
 }

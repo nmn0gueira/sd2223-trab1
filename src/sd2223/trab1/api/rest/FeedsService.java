@@ -164,4 +164,24 @@ public interface FeedsService {
 	@DELETE
 	@Path("/delete/{" + USER + "}")
 	void deleteFeed(@PathParam(USER) String user);
+
+	/**
+	 * Propagates a message to a subscriber outside the domain
+	 *
+	 * @param sub subscriber that receives the message
+	 * @param msg the message object to be propagated
+	 */
+	@POST
+	@Path("/propagate")
+	void propagateMessage(String sub, Message msg);
+
+	/**
+	 * Propagates a subscription to a user outside the domain
+	 *
+	 * @param user user that sent the subscription
+	 * @param userSub the user that was subscribed
+	 */
+	@POST
+	@Path("/subscriber/{" + USER + "}/{" + USERSUB + "}")
+	void propagateSub(String user, String userSub);
 }
