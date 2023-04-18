@@ -208,8 +208,9 @@ public class JavaFeeds implements Feeds {
         personalFeeds.remove(user);
         subscribedTo.remove(user);
         subscribers.remove(user);
+        String userDomain = user.split("@")[1];
         for (String u: subscribedTo.keySet()) {
-            subscribers.get(u).get(user.split("@")[1]).remove(user);    // TALVEZ PRECISE DE COMPUTE IF PRESENT (CONFIRMAR SE TA CERTO)
+            subscribers.get(u).get(userDomain).remove(user);    // TALVEZ PRECISE DE COMPUTE IF PRESENT (CONFIRMAR SE TA CERTO)
         }
 
         return Result.ok();
@@ -232,12 +233,43 @@ public class JavaFeeds implements Feeds {
 
     @Override
     public Result<Void> propagateSub(String user, String userSub) {
+        String userSubDomain = user.split("@")[1];
+        URI uri = discovery.knownUrisOf("users".concat("." + userSubDomain), 1)[0];
+        FeedsClientFactory.get(uri).changeSubscriptionStatus(user, userSub);
+
+
         return null;
     }
 
     @Override
     public Result<Void> addMessage(Message msg) {
-        return null;
+        Log.info("addMessage : msg = " + msg);
+
+        String poster = msg.getUser();
+        long mid = msg.getId();
+
+        for (String user : personalFeeds.keySet()) {
+            if (subscribedTo.get(user).contains(poster))
+                personalFeeds.get(user).put(mid, msg);
+        }
+
+        return Result.ok();
+    }
+
+    @Override
+    public Result<Void> changeSubscriptionStatus(String user, String userSub) {
+        Log.info("changeSubscriptionStatus : user = " + user + "; userSub = " + userSub);
+
+        String userDomain = user.split("@")[1];
+        Set<String> set = subscribers.get(userSub).get(userDomain);
+
+        if (set.contains(user)) {
+            set.remove(user);
+        } else {
+            set.add(user);
+        }
+
+        return Result.ok();
     }
 
     private Result<Void> verifyUser(String user, String pwd) {
