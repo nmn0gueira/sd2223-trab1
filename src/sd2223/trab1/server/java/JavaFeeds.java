@@ -15,8 +15,8 @@ import java.util.logging.Logger;
 
 public class JavaFeeds implements Feeds {
 
-    private final Map<String, Set<String>> subscribers = new HashMap<>(); // Users that follow a given user
-    private final Map<String, Set<String>> subscribedTo = new HashMap<>(); // Users that a given user is subscribed to
+    private final Map<String, Map<String, Set<String>>> subscribers = new HashMap<>(); // User with subscribers -> Domain -> Set of users
+    private final Map<String, Set<String>> subscribedTo = new HashMap<>(); // Users-> Domain -> Set of users subscribed to in that domain
     private final Map<String, Map<Long,Message>> personalFeeds = new HashMap<>();
     private final Discovery discovery = Discovery.getInstance();
     private final int serverId;
@@ -29,7 +29,7 @@ public class JavaFeeds implements Feeds {
         this.serverId = serverId;
     }
 
-    @Override  // Propagate message to subscribers' feeds
+    @Override
     public Result<Long> postMessage(String user, String pwd, Message msg)  {
         Log.info("postMessage : user = " + user + "; pwd = " + pwd + "; msg = " + msg);
 
@@ -50,12 +50,12 @@ public class JavaFeeds implements Feeds {
         personalFeeds.get(user).put(msg.getId(), msg);
 
         // Add message to personal feeds of subscribers (PODE PROPAGAR A MENSAGEM PARA USERS FORA DO DOMINIO)
-        Set<String> subs = subscribers.get(user);
-        if (!subs.isEmpty()) {
-            for (String s : subs) {
-                personalFeeds.get(s).put(msg.getId(), msg);
-            }
+        String domain = user.split("@")[1];
+        Set<String> subs = subscribers.get(user).get(domain);
+        for (String s : subs) {
+            personalFeeds.get(s).put(msg.getId(), msg);
         }
+        //propagateMessage(msg);
 
         return Result.ok(msg.getId());
     }
@@ -129,7 +129,17 @@ public class JavaFeeds implements Feeds {
         }
 
         // Manage user subscriptions
-        subscribers.get(userSub).add(user);
+        String userDomain = user.split("@")[1];
+        String userSubDomain = userSub.split("@")[1];
+        if (userSubDomain.equals(userDomain)) {
+            // If userSub is in the same domain as user
+            subscribers.get(userSub).computeIfAbsent(userSubDomain, k -> new HashSet<>()).add(user);
+        } else {
+            // If userSub is in a different domain than user
+            //Propagate subscription to other server
+
+        }
+
         subscribedTo.get(user).add(userSub);
 
         return Result.ok();
@@ -148,8 +158,19 @@ public class JavaFeeds implements Feeds {
             Log.info("User to unsubscribe from does not exist.");
             return Result.error(ErrorCode.NOT_FOUND);
         }
+
+        String userDomain = user.split("@")[1];
+        String userSubDomain = userSub.split("@")[1];
+        if (userSubDomain.equals(userDomain)) {
+            // If userSub is in the same domain as user
+            subscribers.get(userSub).get(userDomain).remove(user);
+        } else {
+            // If userSub is in a different domain than user
+            //Propagate unsubscription to other server
+
+        }
+
         subscribedTo.get(user).remove(userSub);
-        subscribers.get(userSub).remove(user);
 
         return Result.ok();
     }
@@ -174,7 +195,8 @@ public class JavaFeeds implements Feeds {
 
         personalFeeds.put(user, new HashMap<>());
         subscribedTo.put(user, new HashSet<>());
-        subscribers.put(user, new HashSet<>());
+        subscribers.put(user, new HashMap<>());
+        subscribers.get(user).put(user.split("@")[1], new HashSet<>()); // Add user's own domain
 
         return Result.ok();
     }
@@ -187,7 +209,7 @@ public class JavaFeeds implements Feeds {
         subscribedTo.remove(user);
         subscribers.remove(user);
         for (String u: subscribedTo.keySet()) {
-            subscribers.get(u).remove(user);    // TALVEZ PRECISE DE COMPUTE IF PRESENT (CONFIRMAR SE TA CERTO)
+            subscribers.get(u).get(user.split("@")[1]).remove(user);    // TALVEZ PRECISE DE COMPUTE IF PRESENT (CONFIRMAR SE TA CERTO)
         }
 
         return Result.ok();
@@ -196,14 +218,16 @@ public class JavaFeeds implements Feeds {
     @Override
     public Result<Void> propagateMessage(Message msg) {
         String user = msg.getUser();
-        String[] userInfo = user.split("@");
-        String userName = userInfo[0];
-        String domain = userInfo[1];
-        URI uri = discovery.knownUrisOf("users".concat("." + domain), 1)[0];
+        String domain = user.split("@")[1];
 
-        var res = FeedsClientFactory.get(uri).addMessage(msg);
+        for (String u: subscribers.get(user).keySet()) {
+            if (!u.split("@")[1].equals(domain)) {
+                URI uri = discovery.knownUrisOf("users".concat("." + domain), 1)[0];
+                FeedsClientFactory.get(uri).addMessage(msg);
+            }
+        }
 
-        return null;
+        return Result.ok();
     }
 
     @Override
