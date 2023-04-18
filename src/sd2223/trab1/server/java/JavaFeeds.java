@@ -32,14 +32,15 @@ public class JavaFeeds implements Feeds {
     public Result<Long> postMessage(String user, String pwd, Message msg)  {
         Log.info("postMessage : user = " + user + "; pwd = " + pwd + "; msg = " + msg);
 
-        Result<Void> res = verifyUser(user, pwd);
-        if (!res.isOK())
-            return Result.error(res.error());
-        // Check if message is valid
-        if (msg == null) {
+        // Check if user or message is valid (if it is null or if domain does not match)
+        if (user == null || msg == null || !msg.getDomain().equals(user.split("@")[1])) {
             Log.info("Message object invalid.");
             return Result.error(ErrorCode.BAD_REQUEST);
         }
+
+        Result<Void> res = verifyUser(user, pwd);
+        if (!res.isOK())
+            return Result.error(res.error());
 
         msg.setId(seqNum * 256 + serverId); // Set new message id
         seqNum++;
@@ -185,7 +186,7 @@ public class JavaFeeds implements Feeds {
         subscribedTo.remove(user);
         subscribers.remove(user);
         for (String u: subscribedTo.keySet()) {
-            subscribers.get(u).remove(user);    // TALVEZ PRECISE DE COMPUTE IF PRESENT
+            subscribers.get(u).remove(user);    // TALVEZ PRECISE DE COMPUTE IF PRESENT (CONFIRMAR SE TA CERTO)
         }
 
         return Result.ok();
