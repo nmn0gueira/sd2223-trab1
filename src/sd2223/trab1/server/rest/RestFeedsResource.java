@@ -66,7 +66,7 @@ public class RestFeedsResource extends RestResource implements FeedsService {
     public void propagateSub(String user, String userSub) {super.fromJavaResult(impl.propagateSub(user, userSub));}
 
     @Override
-    public void addMessage(Message message) {
-
+    public void addMessage(Message msg) {
+        super.fromJavaResult(impl.addMessage(msg));
     }
 }
