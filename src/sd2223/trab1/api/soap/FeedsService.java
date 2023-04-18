@@ -148,13 +148,4 @@ public interface FeedsService {
 	 */
 	@WebMethod
 	void addMessage(Message msg) throws FeedsException;
-
-	/**
-	 * Changes the status of a subscription i.e. unsubscribes if a user is subscribed and subscribes if not
-	 *
-	 * @param user user that is subbing/unsubbing
-	 * @param userSub user that is being subbed/unsubbed
-	 * @throws FeedsException
-	 */
-	void changeSubscriptionStatus(String user, String userSub) throws FeedsException;
 }

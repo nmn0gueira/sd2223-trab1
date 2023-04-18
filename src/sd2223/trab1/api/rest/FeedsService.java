@@ -186,14 +186,4 @@ public interface FeedsService {
 	@POST
 	@Path("/add")
 	void addMessage(Message msg);
-
-	/**
-	 * Changes the status of a subscription i.e. unsubscribes if a user is subscribed and subscribes if not
-	 *
-	 * @param user user that is subbing/unsubbing
-	 * @param userSub user that is being subbed/unsubbed
-	 */
-	@PUT
-	@Path("/changesub/{" + USER + "}/{" + USERSUB + "}")
-	void changeSubscriptionStatus(String user, String userSub);
 }

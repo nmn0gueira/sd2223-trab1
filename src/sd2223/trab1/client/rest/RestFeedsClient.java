@@ -134,15 +134,6 @@ public class RestFeedsClient extends RestClient implements Feeds {
         return super.toJavaResult(r, Void.class);
     }
 
-    private Result<Void> clt_changeSubscriptionStatus(String user, String userSub) {
-
-        Response r = target.path("changesub").path(user).path(userSub)
-                .request()
-                .put(Entity.json(null));
-
-        return super.toJavaResult(r, Void.class);
-    }
-
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
         return super.reTry(() -> clt_postMessage(user, pwd, msg));
@@ -201,11 +192,6 @@ public class RestFeedsClient extends RestClient implements Feeds {
     @Override
     public Result<Void> addMessage(Message msg) {
         return super.reTry(() -> clt_addMessage(msg));
-    }
-
-    @Override
-    public Result<Void> changeSubscriptionStatus(String user, String userSub) {
-        return super.reTry(() -> clt_changeSubscriptionStatus(user, userSub));
     }
 
 }
