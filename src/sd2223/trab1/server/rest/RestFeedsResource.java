@@ -70,4 +70,9 @@ public class RestFeedsResource extends RestResource implements FeedsService {
         super.fromJavaResult(impl.addMessage(msg));
     }
 
+    @Override
+    public void changeSubStatus(String user, String userSub) {
+        super.fromJavaResult(impl.changeSubStatus(user, userSub));
+    }
+
 }

@@ -148,4 +148,14 @@ public interface FeedsService {
 	 */
 	@WebMethod
 	void addMessage(Message msg) throws FeedsException;
+
+	/**
+	 * Receive a subscription change from a user outside the domain
+	 *
+	 * @param user user that is subbing/unsubbing
+	 * @param userSub user that is getting subbed/unsubbed
+	 * @return 	204 if ok
+	 */
+	@WebMethod
+	void changeSubStatus(String user, String userSub) throws FeedsException;
 }

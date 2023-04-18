@@ -28,4 +28,6 @@ public interface Feeds {
 	Result<Void> propagateSub(String user, String userSub);
 
 	Result<Void> addMessage(Message msg);
+
+	Result<Void> changeSubStatus(String user, String userSub);
 }

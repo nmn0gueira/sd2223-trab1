@@ -186,4 +186,15 @@ public interface FeedsService {
 	@POST
 	@Path("/add")
 	void addMessage(Message msg);
+
+	/**
+	 * Receive a subscription change from a user outside the domain
+	 *
+	 * @param user user that is subbing/unsubbing
+	 * @param userSub user that is getting subbed/unsubbed
+	 * @return 	204 if ok
+	 */
+	@PUT
+	@Path("/subscriber/{" + USER + "}/{" + USERSUB + "}")
+	void changeSubStatus(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
 }
