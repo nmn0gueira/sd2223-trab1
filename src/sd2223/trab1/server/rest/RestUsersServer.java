@@ -27,7 +27,7 @@ public class RestUsersServer {
 			//int serverId = Integer.parseInt(args[1]);
 
 			ResourceConfig config = new ResourceConfig();
-			config.register(RestUsersResource.class);
+			config.register(new RestUsersResource(domainName));
 			// config.register(CustomLoggingFilter.class);
 
 			String ip = InetAddress.getLocalHost().getHostAddress();

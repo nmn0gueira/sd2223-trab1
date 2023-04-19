@@ -1,15 +1,14 @@
 package sd2223.trab1.server.java;
 
 import sd2223.trab1.api.User;
+import sd2223.trab1.api.java.Feeds;
 import sd2223.trab1.api.java.Users;
 import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.java.Result.ErrorCode;
 import sd2223.trab1.client.FeedsClientFactory;
 import sd2223.trab1.server.util.Discovery;
 
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,9 +17,13 @@ import java.util.logging.Logger;
 
 public class JavaUsers implements Users {
 	private final Map<String, User> users = new ConcurrentHashMap<>();
-	private final Discovery discovery = Discovery.getInstance();
+	private final Feeds feedClient; // Domain -> FeedsClient
 
 	private static final Logger Log = Logger.getLogger(JavaUsers.class.getName());
+
+	public JavaUsers(String domainName) {
+		feedClient = FeedsClientFactory.get(Discovery.getInstance().knownUrisOf("feeds".concat("." + domainName), 1)[0]);
+	}
 
 	@Override
 	public Result<String> createUser(User user) {
@@ -38,11 +41,9 @@ public class JavaUsers implements Users {
 			return Result.error( ErrorCode.CONFLICT);
 		}
 
-		URI uri = discovery.knownUrisOf("feeds".concat("." + user.getDomain()), 1)[0];
-
 		String nameAndDomain = user.getName().concat("@" + user.getDomain());
 
-		FeedsClientFactory.get(uri).createFeedInfo(nameAndDomain);
+		feedClient.createFeedInfo(nameAndDomain);
 
 		return Result.ok(nameAndDomain);
 	}
@@ -80,7 +81,7 @@ public class JavaUsers implements Users {
 		if(!result.isOK())
 			return Result.error(result.error());
 
-		if (!user.getName().equals(name)) // Name cannot be updatedn
+		if (!user.getName().equals(name)) // Name cannot be updated
 			return Result.error(ErrorCode.BAD_REQUEST);
 
 		// Only update the fields that are not null, name and domain cannot be updated
@@ -107,9 +108,7 @@ public class JavaUsers implements Users {
 
 		String domain = user.getDomain();
 
-		URI uri = discovery.knownUrisOf("feeds".concat("." + domain), 1)[0];
-
-		FeedsClientFactory.get(uri).deleteFeedInfo(user.getName().concat("@" + domain));
+		feedClient.deleteFeedInfo(user.getName().concat("@" + domain));
 
 		return Result.ok(user);
 	}

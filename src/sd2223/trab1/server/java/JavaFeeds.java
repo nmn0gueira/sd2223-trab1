@@ -9,7 +9,6 @@ import sd2223.trab1.client.FeedsClientFactory;
 import sd2223.trab1.client.UsersClientFactory;
 import sd2223.trab1.server.util.Discovery;
 
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -20,8 +19,8 @@ public class JavaFeeds implements Feeds {
     private final Map<String, Map<String, Set<String>>> subscribers = new ConcurrentHashMap<>(); // User with subscribers -> Domain -> Set of users from domain
     private final Map<String, Set<String>> subscribedTo = new ConcurrentHashMap<>(); // Users-> Set of users subscribed
     private final Map<String, Map<Long,Message>> personalFeeds = new ConcurrentHashMap<>();
-    private final Map<String, Users> userClients = new ConcurrentHashMap<>();
-    private final Map<String, Feeds> feedClients = new ConcurrentHashMap<>();
+    private final Map<String, Users> userClients = new ConcurrentHashMap<>(); // Domain -> UsersClient
+    private final Map<String, Feeds> feedClients = new ConcurrentHashMap<>(); // Domain -> FeedsClient
     private final Discovery discovery = Discovery.getInstance();
     private final int serverId;
     private final String domainName;
@@ -61,7 +60,7 @@ public class JavaFeeds implements Feeds {
         for (String s : subs) {
             personalFeeds.get(s).put(msg.getId(), msg);
         }
-        propagateMessage(msg);  // Propagate message to other servers if needed
+        new Thread(()-> propagateMessage(msg)).start();  // Propagate message to other servers if needed
 
         return Result.ok(msg.getId());
     }
@@ -103,8 +102,10 @@ public class JavaFeeds implements Feeds {
             return Result.ok(msg);
         }
         //Otherwise, forward request to right domain
-        URI uri = discovery.knownUrisOf("feeds".concat("." + domain), 1)[0];
-        return FeedsClientFactory.get(uri).getMessage(user, mid);
+        String serviceNameAndDomain= "feeds".concat("." + domain);
+        return feedClients
+                .computeIfAbsent(domain, k -> FeedsClientFactory.get(discovery.knownUrisOf(serviceNameAndDomain, 1)[0]))
+                .getMessage(user, mid);
     }
 
     @Override
@@ -130,8 +131,11 @@ public class JavaFeeds implements Feeds {
             return Result.ok(list);
         }
 
-        URI uri = discovery.knownUrisOf("feeds".concat("." + domain), 1)[0];
-        return FeedsClientFactory.get(uri).getMessages(user, time);
+        //Otherwise, forward request to right domain
+        String serviceNameAndDomain= "feeds".concat("." + domain);
+        return feedClients
+                .computeIfAbsent(domain, k -> FeedsClientFactory.get(discovery.knownUrisOf(serviceNameAndDomain, 1)[0]))
+                .getMessages(user, time);
     }
 
     @Override
@@ -260,8 +264,11 @@ public class JavaFeeds implements Feeds {
 
         for (String d: subscribers.get(user).keySet()) {
             if (!d.equals(domain)) {
-                URI uri = discovery.knownUrisOf("feeds".concat("." + d), 1)[0];
-                FeedsClientFactory.get(uri).addMessage(msg);
+                //Otherwise, forward request to right domain
+                String serviceNameAndDomain= "feeds".concat("." + d);
+                feedClients
+                        .computeIfAbsent(d, k -> FeedsClientFactory.get(discovery.knownUrisOf(serviceNameAndDomain, 1)[0]))
+                        .addMessage(msg);
             }
         }
 
@@ -271,8 +278,10 @@ public class JavaFeeds implements Feeds {
         Log.info("propagateSubChange : user = " + user + "; userSub = " + userSub);
 
         String userSubDomain = userSub.split("@")[1];
-        URI uri = discovery.knownUrisOf("feeds".concat("." + userSubDomain), 1)[0];
-        FeedsClientFactory.get(uri).changeSubStatus(user, userSub, subscribing);
+        String serviceNameAndDomain= "feeds".concat("." + userSubDomain);
+        feedClients
+                .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(discovery.knownUrisOf(serviceNameAndDomain, 1)[0]))
+                .changeSubStatus(user, userSub, subscribing);
 
 
     }

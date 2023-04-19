@@ -12,8 +12,8 @@ import jakarta.inject.Singleton;
 public class RestUsersResource extends RestResource implements UsersService {
 
 	final Users impl;
-	public RestUsersResource() {
-		this.impl = new JavaUsers();
+	public RestUsersResource(String domainName) {
+		this.impl = new JavaUsers(domainName);
 	}
 	
 	@Override
