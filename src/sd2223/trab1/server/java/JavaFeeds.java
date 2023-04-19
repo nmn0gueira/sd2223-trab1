@@ -15,8 +15,8 @@ import java.util.logging.Logger;
 
 public class JavaFeeds implements Feeds {
 
-    private final Map<String, Map<String, Set<String>>> subscribers = new HashMap<>(); // User with subscribers -> Domain -> Set of users
-    private final Map<String, Set<String>> subscribedTo = new HashMap<>(); // Users-> Domain -> Set of users subscribed to in that domain
+    private final Map<String, Map<String, Set<String>>> subscribers = new HashMap<>(); // User with subscribers -> Domain -> Set of users from domain
+    private final Map<String, Set<String>> subscribedTo = new HashMap<>(); // Users-> Set of users subscribed
     private final Map<String, Map<Long,Message>> personalFeeds = new HashMap<>();
     private final Discovery discovery = Discovery.getInstance();
     private final int serverId;
