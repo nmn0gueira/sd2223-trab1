@@ -11,16 +11,17 @@ import sd2223.trab1.server.util.Discovery;
 
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 
 public class JavaFeeds implements Feeds {
 
-    private final Map<String, Map<String, Set<String>>> subscribers = new HashMap<>(); // User with subscribers -> Domain -> Set of users from domain
-    private final Map<String, Set<String>> subscribedTo = new HashMap<>(); // Users-> Set of users subscribed
-    private final Map<String, Map<Long,Message>> personalFeeds = new HashMap<>();
-    private final Map<String, Users> userClients = new HashMap<>();
-    private final Map<String, Feeds> feedClients = new HashMap<>();
+    private final Map<String, Map<String, Set<String>>> subscribers = new ConcurrentHashMap<>(); // User with subscribers -> Domain -> Set of users from domain
+    private final Map<String, Set<String>> subscribedTo = new ConcurrentHashMap<>(); // Users-> Set of users subscribed
+    private final Map<String, Map<Long,Message>> personalFeeds = new ConcurrentHashMap<>();
+    private final Map<String, Users> userClients = new ConcurrentHashMap<>();
+    private final Map<String, Feeds> feedClients = new ConcurrentHashMap<>();
     private final Discovery discovery = Discovery.getInstance();
     private final int serverId;
     private final String domainName;
@@ -225,9 +226,11 @@ public class JavaFeeds implements Feeds {
     public Result<Void> createFeedInfo(String user) {
         Log.info("createFeed: user = " + user);
 
-        personalFeeds.put(user, new HashMap<>());
+        //personalFeeds.put(user, new HashMap<>());
+        personalFeeds.put(user, new ConcurrentHashMap<>());
         subscribedTo.put(user, new HashSet<>());
-        subscribers.put(user, new HashMap<>());
+        //subscribers.put(user, new HashMap<>());
+        subscribers.put(user, new ConcurrentHashMap<>());
         subscribers.get(user).put(user.split("@")[1], new HashSet<>()); // Add user's own domain
 
         return Result.ok();

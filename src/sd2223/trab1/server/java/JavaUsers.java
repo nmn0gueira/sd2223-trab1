@@ -12,11 +12,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 
 public class JavaUsers implements Users {
-	private final Map<String, User> users = new HashMap<>();
+	private final Map<String, User> users = new ConcurrentHashMap<>();
 	private final Discovery discovery = Discovery.getInstance();
 
 	private static final Logger Log = Logger.getLogger(JavaUsers.class.getName());
