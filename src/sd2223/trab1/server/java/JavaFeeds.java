@@ -87,24 +87,21 @@ public class JavaFeeds implements Feeds {
     public Result<Message> getMessage(String user, long mid) {
         Log.info("getMessage : user = " + user + "; mid = " + mid);
 
-        Map<Long, Message> messages = personalFeeds.get(user);
-        Message msg;
-
-        // This will check if the user exists or if the message does not exist
-        /*if (messages == null || (msg = messages.get(mid)) == null) {
-            Log.info("User or message do not exist.");
-            return Result.error(ErrorCode.NOT_FOUND);
-        }*/
-
         String domain = user.split("@")[1];
 
+        // If user is supposed to be in this domain
         if (domain.equals(domainName)) {
+
+            Map<Long, Message> messages = personalFeeds.get(user);
+            Message msg;
+            // This will check if the user exists or if the message does not exist
             if (messages == null || (msg = messages.get(mid)) == null) {
                 Log.info("User or message do not exist.");
                 return Result.error(ErrorCode.NOT_FOUND);
             }
             return Result.ok(msg);
         }
+        //Otherwise, forward request to right domain
         URI uri = discovery.knownUrisOf("feeds".concat("." + domain), 1)[0];
         return FeedsClientFactory.get(uri).getMessage(user, mid);
     }
@@ -113,11 +110,11 @@ public class JavaFeeds implements Feeds {
     public Result<List<Message>> getMessages(String user, long time) {
         Log.info("getMessages : user = " + user + "; time = " + time);
 
-        Map<Long, Message> messages = personalFeeds.get(user);
-
         String domain = user.split("@")[1];
 
         if (domain.equals(domainName)) {
+
+            Map<Long, Message> messages = personalFeeds.get(user);
             if (messages == null) {
                 Log.info("User does not exist.");
                 return Result.error(ErrorCode.NOT_FOUND);
