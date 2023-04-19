@@ -16,9 +16,9 @@ public class SoapFeedsWebService extends SoapWebService<FeedsException> implemen
     static Logger Log = Logger.getLogger(SoapFeedsWebService.class.getName());
 
     final Feeds impl;
-    SoapFeedsWebService(int serverId) {
+    SoapFeedsWebService(int serverId, String domainName) {
         super(result -> new FeedsException(result.error().toString()));
-        this.impl = new JavaFeeds(serverId);
+        this.impl = new JavaFeeds(serverId, domainName);
     }
 
     @Override

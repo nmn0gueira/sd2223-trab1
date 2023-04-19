@@ -20,13 +20,15 @@ public class JavaFeeds implements Feeds {
     private final Map<String, Map<Long,Message>> personalFeeds = new HashMap<>();
     private final Discovery discovery = Discovery.getInstance();
     private final int serverId;
+    private final String domainName;
     private long seqNum = 1;
 
 
     private static final Logger Log = Logger.getLogger(JavaFeeds.class.getName());
 
-    public JavaFeeds(int serverId) {
+    public JavaFeeds(int serverId, String domainName) {
         this.serverId = serverId;
+        this.domainName = domainName;
     }
 
     @Override
@@ -86,12 +88,23 @@ public class JavaFeeds implements Feeds {
         Message msg;
 
         // This will check if the user exists or if the message does not exist
-        if (messages == null || (msg = messages.get(mid)) == null) {
+        /*if (messages == null || (msg = messages.get(mid)) == null) {
             Log.info("User or message do not exist.");
             return Result.error(ErrorCode.NOT_FOUND);
-        }
+        }*/
 
-        return Result.ok(msg);
+        String domain = user.split("@")[1];
+
+        if (domain.equals(domainName)) {
+            if (messages == null || messages.get(mid) == null) {
+                Log.info("User or message do not exist.");
+                return Result.error(ErrorCode.NOT_FOUND);
+            }
+            msg = messages.get(mid);
+            return Result.ok(msg);
+        }
+        URI uri = discovery.knownUrisOf("feeds".concat("." + domain), 1)[0];
+        return FeedsClientFactory.get(uri).getMessage(user, mid);
     }
 
     @Override
@@ -263,9 +276,13 @@ public class JavaFeeds implements Feeds {
         String poster = msg.getUser();
         long mid = msg.getId();
 
+        poster = poster.concat("@" + msg.getDomain());
+
         for (String user : personalFeeds.keySet()) {
-            if (subscribedTo.get(user).contains(poster))
+            if (subscribedTo.get(user).contains(poster)) {
                 personalFeeds.get(user).put(mid, msg);
+                Log.info(user + " is subscribed to " + poster + "; message added");
+            }
         }
 
         return Result.ok();
@@ -281,6 +298,8 @@ public class JavaFeeds implements Feeds {
         } else {
             subscribers.get(userSub).get(userDomain).remove(user);
         }
+
+        Log.info("css : user = " + userSub + " subs = " + subscribers.get(userSub));
 
         return Result.ok();
     }
