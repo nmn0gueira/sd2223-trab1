@@ -1,8 +1,5 @@
 package sd2223.trab1.api.rest;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.util.List;
 
 import jakarta.ws.rs.*;
@@ -157,27 +154,6 @@ public interface FeedsService {
 	void deleteFeed(@PathParam(USER) String user);
 
 	/**
-	 * Propagates a message to a subscriber outside the domain
-	 *
-	 * @param msg the message object to be propagated
-	 * @return 	204 if ok
-	 */
-	@POST
-	@Path("/propagate")
-	void propagateMessage(Message msg);
-
-	/**
-	 * Propagates a subscription to a user outside the domain
-	 *
-	 * @param user user that sent the subscription
-	 * @param userSub the user that was subscribed
-	 * @return 	204 if ok
-	 */
-	@POST
-	@Path("/subscriber/{" + USER + "}/{" + USERSUB + "}")
-	void propagateSub(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
-
-	/**
 	 * Receives a message from a subscribed-to user outside the domain
 	 *
 	 * @param msg user that sent the subscription
@@ -190,11 +166,22 @@ public interface FeedsService {
 	/**
 	 * Receive a subscription change from a user outside the domain
 	 *
-	 * @param user user that is subbing/unsubbing
-	 * @param userSub user that is getting subbed/unsubbed
+	 * @param user user that is subbing
+	 * @param userSub user that is getting subbed
 	 * @return 	204 if ok
 	 */
-	@PUT
-	@Path("/subscriber/{" + USER + "}/{" + USERSUB + "}")
-	void changeSubStatus(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
+	@POST
+	@Path("/subber/{" + USERSUB + "}/{" + USER + "}")
+	void subscribeUserOutsideDomain(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
+
+	/**
+	 * Receive a subscription change from a user outside the domain
+	 *
+	 * @param user user that is unsubbing
+	 * @param userSub user that is getting unsubbed
+	 * @return 	204 if ok
+	 */
+	@DELETE
+	@Path("/subber/{" + USERSUB + "}/{" + USER + "}")
+	void unsubscribeUserOutsideDomain(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
 }

@@ -11,8 +11,8 @@ public class RestFeedsResource extends RestResource implements FeedsService {
 
     final Feeds impl;
 
-    public RestFeedsResource(int serverId) {
-        this.impl = new JavaFeeds(serverId);
+    public RestFeedsResource(int serverId, String domainName) {
+        this.impl = new JavaFeeds(serverId, domainName);
     }
 
     @Override
@@ -61,18 +61,18 @@ public class RestFeedsResource extends RestResource implements FeedsService {
     }
 
     @Override
-    public void propagateMessage(Message msg) {super.fromJavaResult(impl.propagateMessage(msg));}
-
-    public void propagateSub(String user, String userSub) {super.fromJavaResult(impl.propagateSubChange(user, userSub));}
-
-    @Override
     public void addMessage(Message msg) {
         super.fromJavaResult(impl.addMessage(msg));
     }
 
     @Override
-    public void changeSubStatus(String user, String userSub) {
-        super.fromJavaResult(impl.changeSubStatus(user, userSub));
+    public void subscribeUserOutsideDomain(String user, String userSub) {
+        super.fromJavaResult(impl.changeSubStatus(user, userSub,true));
+    }
+
+    @Override
+    public void unsubscribeUserOutsideDomain(String user, String userSub) {
+        super.fromJavaResult(impl.changeSubStatus(user, userSub,false));
     }
 
 }
