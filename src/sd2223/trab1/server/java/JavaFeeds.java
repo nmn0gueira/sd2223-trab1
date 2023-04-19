@@ -115,18 +115,25 @@ public class JavaFeeds implements Feeds {
 
         Map<Long, Message> messages = personalFeeds.get(user);
 
-        if (messages == null) {
-            Log.info("User does not exist.");
-            return Result.error(ErrorCode.NOT_FOUND);
+        String domain = user.split("@")[1];
+
+        if (domain.equals(domainName)) {
+            if (messages == null) {
+                Log.info("User does not exist.");
+                return Result.error(ErrorCode.NOT_FOUND);
+            }
+
+            List<Message> list = new ArrayList<>();
+
+            for (Message m : messages.values())
+                if (m.getCreationTime() > time)
+                    list.add(m);
+
+            return Result.ok(list);
         }
 
-        List<Message> list = new ArrayList<>();
-
-        for (Message m : messages.values())
-            if (m.getCreationTime() > time)
-                list.add(m);
-
-        return Result.ok(list);
+        URI uri = discovery.knownUrisOf("feeds".concat("." + domain), 1)[0];
+        return FeedsClientFactory.get(uri).getMessages(user, time);
     }
 
     @Override
