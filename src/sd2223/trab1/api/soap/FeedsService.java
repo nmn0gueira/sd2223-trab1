@@ -125,23 +125,6 @@ public interface FeedsService {
 	void deleteFeed(String user) throws FeedsException;
 
 	/**
-	 * Propagates a message to a subscriber outside the domain
-	 *
-	 * @param msg the message object to be propagated
-	 */
-	@WebMethod
-	void propagateMessage(Message msg) throws FeedsException;
-
-	/**
-	 * Propagates a subscription to a user outside the domain
-	 *
-	 * @param user user that sent the subscription
-	 * @param userSub the user that was subscribed
-	 */
-	@WebMethod
-	void propagateSub(String user, String userSub) throws FeedsException;
-
-	/**
 	 * Receives a message from a subscriber outside the domain
 	 *
 	 * @param msg the message object to be received
@@ -154,8 +137,9 @@ public interface FeedsService {
 	 *
 	 * @param user user that is subbing/unsubbing
 	 * @param userSub user that is getting subbed/unsubbed
+	 * @param subscribing true if subscribing, false if unsubscribing
 	 * @return 	204 if ok
 	 */
 	@WebMethod
-	void changeSubStatus(String user, String userSub) throws FeedsException;
+	void changeSubStatus(String user, String userSub, boolean subscribing) throws FeedsException;
 }

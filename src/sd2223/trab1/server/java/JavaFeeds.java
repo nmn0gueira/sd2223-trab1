@@ -135,14 +135,14 @@ public class JavaFeeds implements Feeds {
 
         } else {
             // Check if userSub exists (if it is in another domain)
-            /*Result<Void> res2 = verifyUser(userSub, "");
+            Result<Void> res2 = verifyUser(userSub, "");
             if (res2.error() == ErrorCode.NOT_FOUND) {
                 Log.info("User to subscribe to does not exist.");
                 return Result.error(ErrorCode.NOT_FOUND);
-            }*/
+            }
 
             //Propagate unsubscription to other server
-            propagateSubChange(user, userSub);
+            propagateSubChange(user, userSub, true);
 
         }
 
@@ -179,7 +179,7 @@ public class JavaFeeds implements Feeds {
             }
 
             //Propagate unsubscription to other server
-            propagateSubChange(user, userSub);
+            propagateSubChange(user, userSub, false);
 
         }
 
@@ -229,9 +229,9 @@ public class JavaFeeds implements Feeds {
         return Result.ok();
     }
 
-    @Override
-    public Result<Void> propagateMessage(Message msg) {
-        Log.info("message " + msg + " is being propagated");
+
+    private void propagateMessage(Message msg) {
+        Log.info("propagateMessage : msg = " + msg);
 
         String domain = msg.getDomain();
         String user = msg.getUser().concat("@" + domain);
@@ -243,20 +243,17 @@ public class JavaFeeds implements Feeds {
             }
         }
 
-        return Result.ok();
     }
 
-    @Override
-    public Result<Void> propagateSubChange(String user, String userSub) {
+    private void propagateSubChange(String user, String userSub, boolean subscribing) {
         Log.info("propagateSubChange : user = " + user + "; userSub = " + userSub);
 
         //String userSubDomain = user.split("@")[1];
         String userSubDomain = userSub.split("@")[1];
         URI uri = discovery.knownUrisOf("feeds".concat("." + userSubDomain), 1)[0];
-        FeedsClientFactory.get(uri).changeSubStatus(user, userSub);
+        FeedsClientFactory.get(uri).changeSubStatus(user, userSub, subscribing);
 
 
-        return Result.ok();
     }
 
     @Override
@@ -267,29 +264,22 @@ public class JavaFeeds implements Feeds {
         long mid = msg.getId();
 
         for (String user : personalFeeds.keySet()) {
-            if (subscribedTo.get(user).contains(poster)) {
-                Log.info(user + " is subscribed to " + poster);
-                Log.info("message has been added to " + user + "'s feed");
+            if (subscribedTo.get(user).contains(poster))
                 personalFeeds.get(user).put(mid, msg);
-            }
-            else
-                Log.info(user + " is not subscribed to " + poster);
         }
 
         return Result.ok();
     }
 
     @Override
-    public Result<Void> changeSubStatus(String user, String userSub) {
+    public Result<Void> changeSubStatus(String user, String userSub, boolean subscribing) {
         Log.info("changeSubStatus : user = " + user + "; userSub = " + userSub);
 
         String userDomain = user.split("@")[1];
-        Set<String> set = subscribers.get(userSub).computeIfAbsent(userDomain, k -> new HashSet<>());
-
-        if (set.contains(user)) {
-            set.remove(user);
+        if (subscribing) {
+            subscribers.get(userSub).computeIfAbsent(userDomain, k -> new HashSet<>()).add(user);
         } else {
-            set.add(user);
+            subscribers.get(userSub).get(userDomain).remove(user);
         }
 
         return Result.ok();

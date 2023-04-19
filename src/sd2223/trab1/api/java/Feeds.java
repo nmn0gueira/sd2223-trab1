@@ -23,11 +23,6 @@ public interface Feeds {
 
 	Result<Void> deleteFeedInfo(String user);
 
-	Result<Void> propagateMessage(Message msg);
-
-	Result<Void> propagateSubChange(String user, String userSub);
-
 	Result<Void> addMessage(Message msg);
-
-	Result<Void> changeSubStatus(String user, String userSub);
+	Result<Void> changeSubStatus(String user, String userSub, boolean subscribing);
 }
