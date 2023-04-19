@@ -1,5 +1,6 @@
 package sd2223.trab1.server.java;
 
+import jakarta.inject.Singleton;
 import sd2223.trab1.api.Message;
 import sd2223.trab1.api.java.Feeds;
 import sd2223.trab1.api.java.Result;
@@ -12,7 +13,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.logging.Logger;
 
-
+@Singleton
 public class JavaFeeds implements Feeds {
 
     private final Map<String, Map<String, Set<String>>> subscribers = new HashMap<>(); // User with subscribers -> Domain -> Set of users
@@ -135,13 +136,13 @@ public class JavaFeeds implements Feeds {
 
         } else {
             // Check if userSub exists (if it is in another domain)
-            /*Result<Void> res2 = verifyUser(userSub, "");
+            Result<Void> res2 = verifyUser(userSub, "");
             if (res2.error() == ErrorCode.NOT_FOUND) {
                 Log.info("User to subscribe to does not exist.");
                 return Result.error(ErrorCode.NOT_FOUND);
-            }*/
+            }
 
-            //Propagate unsubscription to other server
+            //Propagate subscription to other server
             propagateSubChange(user, userSub);
 
         }
@@ -284,13 +285,26 @@ public class JavaFeeds implements Feeds {
         Log.info("changeSubStatus : user = " + user + "; userSub = " + userSub);
 
         String userDomain = user.split("@")[1];
-        Set<String> set = subscribers.get(userSub).computeIfAbsent(userDomain, k -> new HashSet<>());
+        //Set<String> set = subscribers.get(userSub).putIfAbsent(userDomain, k -> new HashSet<>());
+        //Set<String> set = subscribers.get(userSub).computeIfAbsent(userDomain, k -> new HashSet<>());
+        Set<String> set = subscribers.get(userSub).get(userDomain);
 
-        if (set.contains(user)) {
-            set.remove(user);
-        } else {
+        if (set == null) {
+            set = new HashSet<>();
             set.add(user);
+            subscribers.get(userSub).put(userDomain, set);
         }
+        else {
+            if (set.contains(user)) {
+                //set.remove(user);
+                subscribers.get(userSub).get(userDomain).remove(user);
+            } else {
+                //set.add(user);
+                subscribers.get(userSub).get(userDomain).add(user);
+            }
+        }
+
+        Log.info("css: user = " + userSub + " subscribers: " + subscribers.get(userSub));
 
         return Result.ok();
     }
