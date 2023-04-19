@@ -4,6 +4,7 @@ import sd2223.trab1.api.Message;
 import sd2223.trab1.api.java.Feeds;
 import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.java.Result.ErrorCode;
+import sd2223.trab1.api.java.Users;
 import sd2223.trab1.client.FeedsClientFactory;
 import sd2223.trab1.client.UsersClientFactory;
 import sd2223.trab1.server.util.Discovery;
@@ -18,6 +19,8 @@ public class JavaFeeds implements Feeds {
     private final Map<String, Map<String, Set<String>>> subscribers = new HashMap<>(); // User with subscribers -> Domain -> Set of users
     private final Map<String, Set<String>> subscribedTo = new HashMap<>(); // Users-> Domain -> Set of users subscribed to in that domain
     private final Map<String, Map<Long,Message>> personalFeeds = new HashMap<>();
+    private final Map<String, Users> userClients = new HashMap<>();
+    private final Map<String, Feeds> feedClients = new HashMap<>();
     private final Discovery discovery = Discovery.getInstance();
     private final int serverId;
     private final String domainName;
@@ -51,13 +54,13 @@ public class JavaFeeds implements Feeds {
         // Add message to own personal feed of user
         personalFeeds.get(user).put(msg.getId(), msg);
 
-        // Add message to personal feeds of subscribers (PODE PROPAGAR A MENSAGEM PARA USERS FORA DO DOMINIO)
+        // Add message to personal feeds of subscribers
         String domain = user.split("@")[1];
         Set<String> subs = subscribers.get(user).get(domain);
         for (String s : subs) {
             personalFeeds.get(s).put(msg.getId(), msg);
         }
-        propagateMessage(msg);
+        propagateMessage(msg);  // Propagate message to other servers if needed
 
         return Result.ok(msg.getId());
     }
@@ -96,11 +99,10 @@ public class JavaFeeds implements Feeds {
         String domain = user.split("@")[1];
 
         if (domain.equals(domainName)) {
-            if (messages == null || messages.get(mid) == null) {
+            if (messages == null || (msg = messages.get(mid)) == null) {
                 Log.info("User or message do not exist.");
                 return Result.error(ErrorCode.NOT_FOUND);
             }
-            msg = messages.get(mid);
             return Result.ok(msg);
         }
         URI uri = discovery.knownUrisOf("feeds".concat("." + domain), 1)[0];
@@ -261,7 +263,6 @@ public class JavaFeeds implements Feeds {
     private void propagateSubChange(String user, String userSub, boolean subscribing) {
         Log.info("propagateSubChange : user = " + user + "; userSub = " + userSub);
 
-        //String userSubDomain = user.split("@")[1];
         String userSubDomain = userSub.split("@")[1];
         URI uri = discovery.knownUrisOf("feeds".concat("." + userSubDomain), 1)[0];
         FeedsClientFactory.get(uri).changeSubStatus(user, userSub, subscribing);
@@ -273,10 +274,8 @@ public class JavaFeeds implements Feeds {
     public Result<Void> addMessage(Message msg) {
         Log.info("addMessage : msg = " + msg);
 
-        String poster = msg.getUser();
+        String poster = msg.getUser() + "@" + msg.getDomain();
         long mid = msg.getId();
-
-        poster = poster.concat("@" + msg.getDomain());
 
         for (String user : personalFeeds.keySet()) {
             if (subscribedTo.get(user).contains(poster)) {
@@ -295,11 +294,11 @@ public class JavaFeeds implements Feeds {
         String userDomain = user.split("@")[1];
         if (subscribing) {
             subscribers.get(userSub).computeIfAbsent(userDomain, k -> new HashSet<>()).add(user);
+            Log.info("User " + user + " subscribed to " + userSub + " in domain " + userSub.split("@")[1]);
         } else {
             subscribers.get(userSub).get(userDomain).remove(user);
+            Log.info("User " + user + " unsubscribed from " + userSub + " in domain " + userSub.split("@")[1]);
         }
-
-        Log.info("css : user = " + userSub + " subs = " + subscribers.get(userSub));
 
         return Result.ok();
     }
@@ -308,9 +307,10 @@ public class JavaFeeds implements Feeds {
         String[] userInfo = user.split("@");
         String userName = userInfo[0];
         String domain = userInfo[1];
-        URI uri = discovery.knownUrisOf("users".concat("." + domain), 1)[0];
+        String serviceNameAndDomain = "users".concat("." + domain);
+        var userClient = userClients.computeIfAbsent(domain, k -> UsersClientFactory.get(discovery.knownUrisOf(serviceNameAndDomain, 1)[0]));
 
-        var res = UsersClientFactory.get(uri).verifyPassword(userName, pwd);
+        var res = userClient.verifyPassword(userName, pwd);
         if (!res.isOK()) {  // If request failed throw given error
             return Result.error(res.error());
         }

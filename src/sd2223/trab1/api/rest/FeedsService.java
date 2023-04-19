@@ -171,7 +171,7 @@ public interface FeedsService {
 	 * @return 	204 if ok
 	 */
 	@POST
-	@Path("/subscriber/{" + USER + "}/{" + USERSUB + "}")
+	@Path("/subber/{" + USERSUB + "}/{" + USER + "}")
 	void subscribeUserOutsideDomain(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
 
 	/**
@@ -182,6 +182,6 @@ public interface FeedsService {
 	 * @return 	204 if ok
 	 */
 	@DELETE
-	@Path("/subscriber/{" + USER + "}/{" + USERSUB + "}")
+	@Path("/subber/{" + USERSUB + "}/{" + USER + "}")
 	void unsubscribeUserOutsideDomain(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
 }
