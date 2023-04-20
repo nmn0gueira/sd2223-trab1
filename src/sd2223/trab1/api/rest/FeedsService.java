@@ -105,7 +105,7 @@ public interface FeedsService {
 	 * propagated to other domain)
 	 *
 	 * @param user the user unsubscribing (following) other user (format user@domain)
-	 * @param userSub the identifier of the user to be unsubscribed
+	 * @param userSub the identifier of the user to be unsubscribed (format user@domain)
 	 * @param pwd password of the user
 	 * @return 	204 if ok
 	 * 			404 is generated if the user or the user to be unsubscribed does not exist
@@ -130,7 +130,7 @@ public interface FeedsService {
 	List<String> listSubs(@PathParam(USER) String user);
 
 	/**
-	 * Creates a feed for a user.
+	 * Creates the feed info for a user (personal feed, subscriptions, subscribers).
 	 * A user must contact the server of her domain directly (i.e., this operation should not be
 	 * propagated to other domain)
 	 *
@@ -139,10 +139,10 @@ public interface FeedsService {
 	 */
 	@POST
 	@Path("/create/{" + USER + "}")
-	void createFeed(@PathParam(USER) String user);
+	void createFeedInfo(@PathParam(USER) String user);
 
 	/**
-	 * Deletes a feed for a user.
+	 * Deletes the feed info for a user (personal feed, subscriptions, subscribers).
 	 * A user must contact the server of her domain directly (i.e., this operation should not be
 	 * propagated to other domain)
 	 *
@@ -151,12 +151,12 @@ public interface FeedsService {
 	 */
 	@DELETE
 	@Path("/delete/{" + USER + "}")
-	void deleteFeed(@PathParam(USER) String user);
+	void deleteFeedInfo(@PathParam(USER) String user);
 
 	/**
-	 * Receives a message from a subscribed-to user outside the domain
+	 * Add a message to the personal feed of a users subscribed to the messages' sender.
 	 *
-	 * @param msg user that sent the subscription
+	 * @param msg message to be added to subscribed users' feeds
 	 * @return 	204 if ok
 	 */
 	@POST
@@ -166,22 +166,22 @@ public interface FeedsService {
 	/**
 	 * Receive a subscription change from a user outside the domain
 	 *
-	 * @param user user that is subbing
-	 * @param userSub user that is getting subbed
+	 * @param user user that is subbing (format user@domain)
+	 * @param userSub user that is getting subbed (format user@domain)
 	 * @return 	204 if ok
 	 */
 	@POST
-	@Path("/subber/{" + USERSUB + "}/{" + USER + "}")
+	@Path("/subscriber/{" + USERSUB + "}/{" + USER + "}")
 	void subscribeUserOutsideDomain(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
 
 	/**
 	 * Receive a subscription change from a user outside the domain
 	 *
-	 * @param user user that is unsubbing
-	 * @param userSub user that is getting unsubbed
+	 * @param user user that is unsubbing (format user@domain)
+	 * @param userSub user that is getting unsubbed (format user@domain)
 	 * @return 	204 if ok
 	 */
 	@DELETE
-	@Path("/subber/{" + USERSUB + "}/{" + USER + "}")
+	@Path("/subscriber/{" + USERSUB + "}/{" + USER + "}")
 	void unsubscribeUserOutsideDomain(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
 }

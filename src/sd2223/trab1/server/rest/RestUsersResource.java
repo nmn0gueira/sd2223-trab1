@@ -10,8 +10,8 @@ import sd2223.trab1.server.java.JavaUsers;
 public class RestUsersResource extends RestResource implements UsersService {
 
 	final Users impl;
-	public RestUsersResource(String domainName) {
-		this.impl = new JavaUsers(domainName);
+	public RestUsersResource(String serviceDomain) {
+		this.impl = new JavaUsers(serviceDomain);
 	}
 	
 	@Override

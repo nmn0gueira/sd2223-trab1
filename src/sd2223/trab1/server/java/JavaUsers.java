@@ -15,13 +15,16 @@ import java.util.logging.Logger;
 
 
 public class JavaUsers implements Users {
-	private final Map<String, User> users = new ConcurrentHashMap<>();
+
+	private static final String AT = "@";
+
+	private final Map<String, User> users = new ConcurrentHashMap<>(); // Name -> User
 	private final Feeds feedClient; // Domain -> FeedsClient
 
 	private static final Logger Log = Logger.getLogger(JavaUsers.class.getName());
 
-	public JavaUsers(String domainName) {
-		feedClient = FeedsClientFactory.get(domainName);
+	public JavaUsers(String serviceDomain) {
+		feedClient = FeedsClientFactory.get(serviceDomain);
 	}
 
 	@Override
@@ -40,9 +43,9 @@ public class JavaUsers implements Users {
 			return Result.error( ErrorCode.CONFLICT);
 		}
 
-		String nameAndDomain = user.getName().concat("@" + user.getDomain());
+		String nameAndDomain = user.getName().concat(AT + user.getDomain());
 
-		feedClient.createFeedInfo(nameAndDomain);
+		new Thread (() -> feedClient.createFeedInfo(nameAndDomain)).start();
 
 		return Result.ok(nameAndDomain);
 	}
@@ -107,7 +110,7 @@ public class JavaUsers implements Users {
 
 		String domain = user.getDomain();
 
-		feedClient.deleteFeedInfo(user.getName().concat("@" + domain));
+		new Thread (() -> feedClient.deleteFeedInfo(user.getName().concat(AT + domain))).start();
 
 		return Result.ok(user);
 	}

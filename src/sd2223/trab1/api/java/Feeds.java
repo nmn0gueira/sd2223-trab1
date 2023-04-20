@@ -24,5 +24,6 @@ public interface Feeds {
 	Result<Void> deleteFeedInfo(String user);
 
 	Result<Void> addMessage(Message msg);
+
 	Result<Void> changeSubStatus(String user, String userSub, boolean subscribing);
 }

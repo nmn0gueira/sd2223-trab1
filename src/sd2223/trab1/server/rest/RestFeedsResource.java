@@ -11,8 +11,8 @@ public class RestFeedsResource extends RestResource implements FeedsService {
 
     final Feeds impl;
 
-    public RestFeedsResource(int serverId, String domainName) {
-        this.impl = new JavaFeeds(serverId, domainName);
+    public RestFeedsResource(int serverId, String serviceDomain) {
+        this.impl = new JavaFeeds(serverId, serviceDomain);
     }
 
     @Override
@@ -51,12 +51,12 @@ public class RestFeedsResource extends RestResource implements FeedsService {
     }
 
     @Override
-    public void createFeed(String user) {
+    public void createFeedInfo(String user) {
         super.fromJavaResult(impl.createFeedInfo(user));
     }
 
     @Override
-    public void deleteFeed(String user) {
+    public void deleteFeedInfo(String user) {
         super.fromJavaResult(impl.deleteFeedInfo(user));
     }
 

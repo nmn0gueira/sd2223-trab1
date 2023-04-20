@@ -3,7 +3,7 @@ package sd2223.trab1.client;
 import sd2223.trab1.api.java.Users;
 import sd2223.trab1.client.rest.RestUsersClient;
 import sd2223.trab1.client.soap.SoapUsersClient;
-import sd2223.trab1.server.util.Discovery;
+import sd2223.trab1.client.util.Discovery;
 
 import java.net.URI;
 

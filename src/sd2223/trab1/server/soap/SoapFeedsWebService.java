@@ -8,17 +8,14 @@ import sd2223.trab1.api.soap.FeedsService;
 import sd2223.trab1.server.java.JavaFeeds;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 @WebService(serviceName= FeedsService.NAME, targetNamespace=FeedsService.NAMESPACE, endpointInterface=FeedsService.INTERFACE)
 public class SoapFeedsWebService extends SoapWebService<FeedsException> implements FeedsService{
 
-    static Logger Log = Logger.getLogger(SoapFeedsWebService.class.getName());
-
     final Feeds impl;
-    SoapFeedsWebService(int serverId, String domainName) {
+    SoapFeedsWebService(int serverId, String serviceDomain) {
         super(result -> new FeedsException(result.error().toString()));
-        this.impl = new JavaFeeds(serverId, domainName);
+        this.impl = new JavaFeeds(serverId, serviceDomain);
     }
 
     @Override

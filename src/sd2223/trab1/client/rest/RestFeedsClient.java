@@ -120,11 +120,11 @@ public class RestFeedsClient extends RestClient implements Feeds {
     private Result<Void> clt_changeSubStatus(String user, String userSub, boolean subscribing) {
         Response r;
         if (subscribing) {
-            r = target.path("subber").path(userSub).path(user)
+            r = target.path("subscriber").path(userSub).path(user)
                     .request()
                     .post(Entity.json(null));
         } else {
-            r = target.path("subber").path(userSub).path(user)
+            r = target.path("subscriber").path(userSub).path(user)
                     .request()
                     .delete();
         }

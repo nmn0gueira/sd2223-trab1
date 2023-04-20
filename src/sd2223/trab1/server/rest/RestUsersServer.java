@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
-import sd2223.trab1.server.util.Discovery;
+import sd2223.trab1.client.util.Discovery;
 
 public class RestUsersServer {
 
@@ -23,18 +23,18 @@ public class RestUsersServer {
 	public static void main(String[] args) {
 		try {
 
-			String domainName = args[0];
+			String serviceDomain = args[0];
 			//int serverId = Integer.parseInt(args[1]);
 
 			ResourceConfig config = new ResourceConfig();
-			config.register(new RestUsersResource(domainName));
+			config.register(new RestUsersResource(serviceDomain));
 			// config.register(CustomLoggingFilter.class);
 
 			String ip = InetAddress.getLocalHost().getHostAddress();
 			String serverURI = String.format(SERVER_URI_FMT, ip, PORT);
 
 			Discovery discovery = Discovery.getInstance();
-			discovery.announce(domainName, SERVICE, serverURI);
+			discovery.announce(serviceDomain, SERVICE, serverURI);
 			JdkHttpServerFactory.createHttpServer(URI.create(serverURI.replace(ip, "0.0.0.0")), config);
 
 			Log.info(String.format("%s Server ready @ %s\n", SERVICE, serverURI));

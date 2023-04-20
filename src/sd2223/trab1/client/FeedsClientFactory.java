@@ -3,7 +3,7 @@ package sd2223.trab1.client;
 import sd2223.trab1.api.java.Feeds;
 import sd2223.trab1.client.rest.RestFeedsClient;
 import sd2223.trab1.client.soap.SoapFeedsClient;
-import sd2223.trab1.server.util.Discovery;
+import sd2223.trab1.client.util.Discovery;
 
 
 import java.net.URI;

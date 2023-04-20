@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import jakarta.xml.ws.Endpoint;
-import sd2223.trab1.server.util.Discovery;
+import sd2223.trab1.client.util.Discovery;
 
 public class SoapFeedsServer {
 
@@ -18,7 +18,7 @@ public class SoapFeedsServer {
 
     public static void main(String[] args) throws Exception {
 
-        String domainName = args[0];
+        String serviceDomain = args[0];
         int serverId = Integer.parseInt(args[1]);
 
 //		System.setProperty("com.sun.xml.ws.transport.http.client.HttpTransportPipe.dump", "true");
@@ -32,8 +32,8 @@ public class SoapFeedsServer {
         String serverURI = String.format(SERVER_BASE_URI, ip, PORT);
 
         Discovery discovery = Discovery.getInstance();
-        discovery.announce(domainName, SERVICE, serverURI);
-        Endpoint.publish(serverURI.replace(ip, "0.0.0.0"), new SoapFeedsWebService(serverId, domainName));
+        discovery.announce(serviceDomain, SERVICE, serverURI);
+        Endpoint.publish(serverURI.replace(ip, "0.0.0.0"), new SoapFeedsWebService(serverId, serviceDomain));
 
         Log.info(String.format("%s Soap Server ready @ %s\n", SERVICE, serverURI));
     }

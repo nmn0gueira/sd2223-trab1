@@ -87,7 +87,7 @@ public interface FeedsService {
 	 * propagated to other domain)
 	 *
 	 * @param user the user unsubscribing (following) other user (format user@domain)
-	 * @param userSub the identifier of the user to be unsubscribed
+	 * @param userSub the identifier of the user to be unsubscribed (format user@domain)
 	 * @param pwd password of the user to subscribe
 	 * @throws FORBIDDEN if the user does not exist or if the pwd is not correct
 	 * 		   NOT_FOUND the userSub is not subscribed
@@ -105,7 +105,7 @@ public interface FeedsService {
 	List<String> listSubs(String user) throws FeedsException;
 
 	/**
-	 * Creates a new feed for the user.
+	 * Creates the feed info for a user (personal feed, subscriptions, subscribers).
 	 * A user must contact the server of her domain directly (i.e., this operation should not be
 	 * propagated to other domain)
 	 *
@@ -115,7 +115,7 @@ public interface FeedsService {
 	void createFeed(String user) throws FeedsException;
 
 	/**
-	 * Deletes the feed of the user.
+	 * Deletes the feed info for a user (personal feed, subscriptions, subscribers).
 	 * A user must contact the server of her domain directly (i.e., this operation should not be
 	 * propagated to other domain)
 	 *
@@ -125,9 +125,9 @@ public interface FeedsService {
 	void deleteFeed(String user) throws FeedsException;
 
 	/**
-	 * Receives a message from a subscriber outside the domain
+	 * Add a message to the personal feed of a users subscribed to the messages' sender.
 	 *
-	 * @param msg the message object to be received
+	 * @param msg message to be added to subscribed users' feeds
 	 */
 	@WebMethod
 	void addMessage(Message msg) throws FeedsException;
@@ -135,10 +135,9 @@ public interface FeedsService {
 	/**
 	 * Receive a subscription change from a user outside the domain
 	 *
-	 * @param user user that is subbing/unsubbing
-	 * @param userSub user that is getting subbed/unsubbed
+	 * @param user user that is subbing/unsubbing (format user@domain)
+	 * @param userSub user that is getting subbed/unsubbed (format user@domain)
 	 * @param subscribing true if subscribing, false if unsubscribing
-	 * @return 	204 if ok
 	 */
 	@WebMethod
 	void changeSubStatus(String user, String userSub, boolean subscribing) throws FeedsException;

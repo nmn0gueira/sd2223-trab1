@@ -2,7 +2,7 @@ package sd2223.trab1.server.rest;
 
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
-import sd2223.trab1.server.util.Discovery;
+import sd2223.trab1.client.util.Discovery;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -23,18 +23,18 @@ public class RestFeedsServer {
     public static void main(String[] args) {
         try {
 
-            String domainName = args[0];
+            String serviceDomain = args[0];
             int serverId = Integer.parseInt(args[1]);
 
             ResourceConfig config = new ResourceConfig();
-            config.register(new RestFeedsResource(serverId, domainName));
+            config.register(new RestFeedsResource(serverId, serviceDomain));
             // config.register(CustomLoggingFilter.class);
 
             String ip = InetAddress.getLocalHost().getHostAddress();
             String serverURI = String.format(SERVER_URI_FMT, ip, PORT);
 
             Discovery discovery = Discovery.getInstance();
-            discovery.announce(domainName, SERVICE, serverURI);
+            discovery.announce(serviceDomain, SERVICE, serverURI);
             JdkHttpServerFactory.createHttpServer(URI.create(serverURI.replace(ip, "0.0.0.0")), config);
 
             Log.info(String.format("%s Server ready @ %s\n", SERVICE, serverURI));
