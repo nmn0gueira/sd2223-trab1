@@ -7,7 +7,6 @@ import sd2223.trab1.api.java.Result.ErrorCode;
 import sd2223.trab1.api.java.Users;
 import sd2223.trab1.client.FeedsClientFactory;
 import sd2223.trab1.client.UsersClientFactory;
-import sd2223.trab1.server.util.Discovery;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +20,6 @@ public class JavaFeeds implements Feeds {
     private final Map<String, Map<Long,Message>> personalFeeds = new ConcurrentHashMap<>();
     private final Map<String, Users> userClients = new ConcurrentHashMap<>(); // Domain -> UsersClient
     private final Map<String, Feeds> feedClients = new ConcurrentHashMap<>(); // Domain -> FeedsClient
-    private final Discovery discovery = Discovery.getInstance();
     private final int serverId;
     private final String domainName;
     private long seqNum = 1;
@@ -56,12 +54,18 @@ public class JavaFeeds implements Feeds {
 
         // Add message to personal feeds of subscribers
         String domain = user.split("@")[1];
-        Set<String> subs = subscribers.get(user).get(domain);
-        for (String s : subs) {
+        Set<String> subsFromSameDomain = subscribers.get(user).get(domain);
+        for (String s : subsFromSameDomain) {
             personalFeeds.get(s).put(msg.getId(), msg);
         }
-        new Thread(()-> propagateMessage(msg)).start();  // Propagate message to other servers if needed
-
+        Set<String> domains = new HashSet<>(subscribers.get(user).keySet());
+        domains.remove(domain);
+        new Thread(()-> domains
+                .stream()
+                .parallel()
+                .forEach(d -> feedClients
+                            .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
+                            .addMessage(msg))).start();  // Propagate message to other servers if needed
         return Result.ok(msg.getId());
     }
 
@@ -102,9 +106,8 @@ public class JavaFeeds implements Feeds {
             return Result.ok(msg);
         }
         //Otherwise, forward request to right domain
-        String serviceNameAndDomain= "feeds".concat("." + domain);
         return feedClients
-                .computeIfAbsent(domain, k -> FeedsClientFactory.get(discovery.knownUrisOf(serviceNameAndDomain, 1)[0]))
+                .computeIfAbsent(domain, k -> FeedsClientFactory.get(domain))
                 .getMessage(user, mid);
     }
 
@@ -132,9 +135,8 @@ public class JavaFeeds implements Feeds {
         }
 
         //Otherwise, forward request to right domain
-        String serviceNameAndDomain= "feeds".concat("." + domain);
         return feedClients
-                .computeIfAbsent(domain, k -> FeedsClientFactory.get(discovery.knownUrisOf(serviceNameAndDomain, 1)[0]))
+                .computeIfAbsent(domain, k -> FeedsClientFactory.get(domain))
                 .getMessages(user, time);
     }
 
@@ -263,13 +265,14 @@ public class JavaFeeds implements Feeds {
         String user = msg.getUser().concat("@" + domain);
 
         for (String d: subscribers.get(user).keySet()) {
+
             if (!d.equals(domain)) {
                 //Otherwise, forward request to right domain
-                String serviceNameAndDomain= "feeds".concat("." + d);
                 feedClients
-                        .computeIfAbsent(d, k -> FeedsClientFactory.get(discovery.knownUrisOf(serviceNameAndDomain, 1)[0]))
+                        .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
                         .addMessage(msg);
             }
+
         }
 
     }
@@ -278,9 +281,8 @@ public class JavaFeeds implements Feeds {
         Log.info("propagateSubChange : user = " + user + "; userSub = " + userSub);
 
         String userSubDomain = userSub.split("@")[1];
-        String serviceNameAndDomain= "feeds".concat("." + userSubDomain);
         feedClients
-                .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(discovery.knownUrisOf(serviceNameAndDomain, 1)[0]))
+                .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(userSubDomain))
                 .changeSubStatus(user, userSub, subscribing);
 
 
@@ -323,8 +325,8 @@ public class JavaFeeds implements Feeds {
         String[] userInfo = user.split("@");
         String userName = userInfo[0];
         String domain = userInfo[1];
-        String serviceNameAndDomain = "users".concat("." + domain);
-        var userClient = userClients.computeIfAbsent(domain, k -> UsersClientFactory.get(discovery.knownUrisOf(serviceNameAndDomain, 1)[0]));
+
+        var userClient = userClients.computeIfAbsent(domain, k -> UsersClientFactory.get(domain));
 
         var res = userClient.verifyPassword(userName, pwd);
         if (!res.isOK()) {  // If request failed throw given error

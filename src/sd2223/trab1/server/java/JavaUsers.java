@@ -6,7 +6,6 @@ import sd2223.trab1.api.java.Users;
 import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.java.Result.ErrorCode;
 import sd2223.trab1.client.FeedsClientFactory;
-import sd2223.trab1.server.util.Discovery;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +21,7 @@ public class JavaUsers implements Users {
 	private static final Logger Log = Logger.getLogger(JavaUsers.class.getName());
 
 	public JavaUsers(String domainName) {
-		feedClient = FeedsClientFactory.get(Discovery.getInstance().knownUrisOf("feeds".concat("." + domainName), 1)[0]);
+		feedClient = FeedsClientFactory.get(domainName);
 	}
 
 	@Override
