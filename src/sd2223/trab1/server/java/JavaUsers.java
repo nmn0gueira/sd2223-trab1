@@ -79,7 +79,7 @@ public class JavaUsers implements Users {
 	public Result<User> updateUser(String name, String pwd, User user) {
 		Log.info("updateUser : user = " + name + "; pwd = " + pwd + " ; user = " + user);
 
-		Result<Void> result = verifyPassword(name, pwd); // All necessary checks are done in this method
+		Result<User> result = getUser(name, pwd); // Verify if user exists and password is correct
 		if(!result.isOK())
 			return Result.error(result.error());
 
@@ -102,7 +102,7 @@ public class JavaUsers implements Users {
 	public Result<User> deleteUser(String name, String pwd) {
 		Log.info("deleteUser : user = " + name + "; pwd = " + pwd);
 
-		Result<Void> result = verifyPassword(name, pwd); // All necessary checks are done in this method
+		Result<User> result = getUser(name, pwd); // Verify if user exists and password is correct
 		if(!result.isOK())
 			return Result.error(result.error());
 
@@ -135,14 +135,5 @@ public class JavaUsers implements Users {
 		}
 
 		return Result.ok(list);
-	}
-
-	@Override
-	public Result<Void> verifyPassword(String name, String pwd) {
-		var res = getUser(name, pwd);
-		if( res.isOK() )
-			return Result.ok();
-		else
-			return Result.error( res.error() );
 	}
 }

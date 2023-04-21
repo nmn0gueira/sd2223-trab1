@@ -56,19 +56,16 @@ public class JavaFeeds implements Feeds {
         // Add message to own personal feed of user
         personalFeeds.get(user).put(msg.getId(), msg);
 
-        // Add message to personal feeds of subscribers
-        new Thread(()-> {
-            Set<String> subsFromSameDomain = subscribers.get(user).get(userDomain);
-            for (String s : subsFromSameDomain) {
-                personalFeeds.get(s).put(msg.getId(), msg);
-            }
-            Set<String> domains = new HashSet<>(subscribers.get(user).keySet());
-            domains.remove(userDomain); // Only propagate to other domains
+        // Propagate messages to subscribers
+        new Thread(() -> {
+            Set<String> domains = subscribers.get(user).keySet();
+
+            Log.info("Subscribers (DEBUG): " + subscribers.get(user));
             domains.stream()
                     .parallel()
                     .forEach(d -> feedClients
                             .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
-                            .addMessage(msg));
+                            .addMessageToUsers(msg, String.join(",",subscribers.get(user).get(d))));
         }).start();
 
         return Result.ok(msg.getId());
@@ -269,17 +266,16 @@ public class JavaFeeds implements Feeds {
     }
 
     @Override
-    public Result<Void> addMessage(Message msg) {   // TALVEZ FAZER COM QUE ISTO RECEBA UM SET DE USERS
-        Log.info("addMessage : msg = " + msg);
+    public Result<Void> addMessageToUsers(Message msg, String users) {   // TALVEZ FAZER COM QUE ISTO RECEBA UM SET DE USERS
+        String[] usersToAddMessage = users.split(",");
 
-        String poster = msg.getUser() + AT + msg.getDomain();
+        Log.info("addMessageToUsers : msg = " + msg + "; users = " + users);
+        Log.info ("domain: " + serviceDomain);
         long mid = msg.getId();
 
-        for (String user : personalFeeds.keySet()) {        // TALVEZ ITERAR SOBRE ENTRIES EM VEZ DE KEYS
-            if (subscribedTo.get(user).contains(poster)) {
-                personalFeeds.get(user).put(mid, msg);
-                Log.info(user + " is subscribed to " + poster + "; message added");
-            }
+        for (String user : usersToAddMessage) {        // TALVEZ ITERAR SOBRE ENTRIES EM VEZ DE KEYS
+            Log.info("addMessageToUsers (DEBUG) : user = " + user);
+            personalFeeds.get(user).put(mid, msg);
         }
 
         return Result.ok();
@@ -306,7 +302,7 @@ public class JavaFeeds implements Feeds {
 
         var userClient = userClients.computeIfAbsent(userDomain, k -> UsersClientFactory.get(userDomain));
 
-        var res = userClient.verifyPassword(userName, pwd);
+        var res = userClient.getUser(userName, pwd);
         if (!res.isOK()) {  // If request failed throw given error
             return Result.error(res.error());
         }

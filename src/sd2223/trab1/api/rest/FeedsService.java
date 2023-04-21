@@ -1,6 +1,7 @@
 package sd2223.trab1.api.rest;
 
 import java.util.List;
+import java.util.Set;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -12,6 +13,7 @@ public interface FeedsService {
 	String MID = "mid";
 	String PWD = "pwd";
 	String USER = "user";
+	String USERS = "users";
 	String TIME = "time";
 	String DOMAIN = "domain";
 	String USERSUB = "userSub";
@@ -157,11 +159,12 @@ public interface FeedsService {
 	 * Add a message to the personal feed of a users subscribed to the messages' sender.
 	 *
 	 * @param msg message to be added to subscribed users' feeds
+	 * @param users String.join(",", set of users to add messages to)
 	 * @return 	204 if ok
 	 */
 	@POST
 	@Path("/add")
-	void addMessage(Message msg);
+	void addMessageToUsers(Message msg, @QueryParam(USERS) String users);
 
 	/**
 	 * Receive a subscription change from a user outside the domain

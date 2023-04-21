@@ -1,6 +1,7 @@
 package sd2223.trab1.api.soap;
 
 import java.util.List;
+import java.util.Set;
 
 import jakarta.jws.WebMethod;
 import jakarta.jws.WebService;
@@ -130,7 +131,7 @@ public interface FeedsService {
 	 * @param msg message to be added to subscribed users' feeds
 	 */
 	@WebMethod
-	void addMessage(Message msg) throws FeedsException;
+	void addMessageToUsers(Message msg, String users) throws FeedsException;
 
 	/**
 	 * Receive a subscription change from a user outside the domain

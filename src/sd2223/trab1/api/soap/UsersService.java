@@ -59,13 +59,4 @@ public interface UsersService {
 	 */
 	@WebMethod
 	List<User> searchUsers(String pattern) throws UsersException;
-
-	/**
-	 * Verifies if the password is correct for the user identified by name.
-	 * @param name name of the user
-	 * @param pwd password of the user
-	 * @throws UsersException otherwise
-	 */
-	@WebMethod
-	void verifyPassword(String name, String pwd) throws UsersException;
 }

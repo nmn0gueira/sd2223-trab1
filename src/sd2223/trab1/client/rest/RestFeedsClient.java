@@ -11,7 +11,10 @@ import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.rest.FeedsService;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class RestFeedsClient extends RestClient implements Feeds {
 
@@ -108,9 +111,9 @@ public class RestFeedsClient extends RestClient implements Feeds {
         return super.toJavaResult(r, Void.class);
     }
 
-    private Result<Void> clt_addMessage(Message msg) {
+    private Result<Void> clt_addMessageToUsers(Message msg, String users) {
 
-        Response r = target.path("add")
+        Response r = target.path("add").queryParam(FeedsService.USERS, users)
                 .request()
                 .post(Entity.entity(msg, MediaType.APPLICATION_JSON));
 
@@ -178,8 +181,8 @@ public class RestFeedsClient extends RestClient implements Feeds {
     }
 
     @Override
-    public Result<Void> addMessage(Message msg) {
-        return super.reTry(() -> clt_addMessage(msg));
+    public Result<Void> addMessageToUsers(Message msg, String users) {
+        return super.reTry(() -> clt_addMessageToUsers(msg, users));
     }
 
     @Override

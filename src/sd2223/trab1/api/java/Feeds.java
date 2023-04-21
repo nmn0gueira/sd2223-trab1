@@ -1,5 +1,6 @@
 package sd2223.trab1.api.java;
 import java.util.List;
+import java.util.Set;
 
 import sd2223.trab1.api.Message;
 
@@ -23,7 +24,7 @@ public interface Feeds {
 
 	Result<Void> deleteFeedInfo(String user);
 
-	Result<Void> addMessage(Message msg);
+	Result<Void> addMessageToUsers(Message msg, String users);
 
 	Result<Void> changeSubStatus(String user, String userSub, boolean subscribing);
 }

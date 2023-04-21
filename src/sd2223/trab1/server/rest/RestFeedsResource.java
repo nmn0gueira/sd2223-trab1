@@ -6,6 +6,7 @@ import sd2223.trab1.api.rest.FeedsService;
 import sd2223.trab1.server.java.JavaFeeds;
 
 import java.util.List;
+import java.util.Set;
 
 public class RestFeedsResource extends RestResource implements FeedsService {
 
@@ -61,8 +62,8 @@ public class RestFeedsResource extends RestResource implements FeedsService {
     }
 
     @Override
-    public void addMessage(Message msg) {
-        super.fromJavaResult(impl.addMessage(msg));
+    public void addMessageToUsers(Message msg, String users) {
+        super.fromJavaResult(impl.addMessageToUsers(msg, users));
     }
 
     @Override

@@ -2,6 +2,7 @@ package sd2223.trab1.client.soap;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -76,8 +77,8 @@ public class SoapFeedsClient extends SoapClient implements Feeds {
     }
 
     @Override
-    public Result<Void> addMessage(Message msg) {
-        return super.reTry( () -> super.toJavaResult( () -> stub().addMessage(msg) ) );
+    public Result<Void> addMessageToUsers(Message msg, String users) {
+        return super.reTry( () -> super.toJavaResult( () -> stub().addMessageToUsers(msg, users) ) );
     }
 
     @Override
