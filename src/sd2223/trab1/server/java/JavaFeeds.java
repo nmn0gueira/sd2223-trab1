@@ -39,9 +39,8 @@ public class JavaFeeds implements Feeds {
     public Result<Long> postMessage(String user, String pwd, Message msg)  {
         Log.info("postMessage : user = " + user + "; pwd = " + pwd + "; msg = " + msg);
 
-        String userDomain;
         // Check if user or message is valid (if it is null or if domain does not match)
-        if (user == null || msg == null || !(userDomain = user.split(AT)[1]).equals(msg.getDomain())) {
+        if (user == null || msg == null || !user.split(AT)[1].equals(msg.getDomain())) {
             Log.info("Message object invalid.");
             return Result.error(ErrorCode.BAD_REQUEST);
         }
@@ -60,7 +59,6 @@ public class JavaFeeds implements Feeds {
         new Thread(() -> {
             Set<String> domains = subscribers.get(user).keySet();
 
-            Log.info("Subscribers (DEBUG): " + subscribers.get(user));
             domains.stream()
                     .parallel()
                     .forEach(d -> feedClients
@@ -150,28 +148,18 @@ public class JavaFeeds implements Feeds {
         if (!res1.isOK())
             return Result.error(res1.error());
 
-        String userSubDomain = userSub.split(AT)[1];
-        if (userSubDomain.equals(serviceDomain)) {
-            // Check if userSub exists (if it is in this domain)
-            if (subscribers.get(userSub) == null) {
-                Log.info("User to subscribe to does not exist.");
-                return Result.error(ErrorCode.NOT_FOUND);
-            }
-
-            subscribers.get(userSub).computeIfAbsent(userSubDomain, k -> new HashSet<>()).add(user);
-
-        } else {
-            // Check if userSub exists (if it is in another domain)
-            Result<Void> res2 = verifyUser(userSub, "");
-            if (res2.error() == ErrorCode.NOT_FOUND) {
-                Log.info("User to subscribe to does not exist.");
-                return Result.error(ErrorCode.NOT_FOUND);
-            }
-
-            //Propagate unsubscription to other server
-            propagateSubChange(user, userSub, true);
-
+        // Check if userSub exists (if it is in another domain)
+        Result<Void> res2 = verifyUser(userSub, "");
+        if (res2.error() == ErrorCode.NOT_FOUND) {
+            Log.info("User to subscribe to does not exist.");
+            return Result.error(ErrorCode.NOT_FOUND);
         }
+
+        //Propagate subscription
+        String userSubDomain = userSub.split(AT)[1];
+        new Thread (() -> feedClients
+                .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(userSubDomain))
+                .changeSubStatus(user, userSub, true)).start();
 
         subscribedTo.get(user).add(userSub);
 
@@ -186,28 +174,19 @@ public class JavaFeeds implements Feeds {
         if (!res1.isOK())
             return Result.error(res1.error());
 
-        String userSubDomain = userSub.split(AT)[1];
-        if (userSubDomain.equals(serviceDomain)) {
-            // Check if userSub exists (if it is in this domain)
-            if (subscribers.get(userSub) == null) {
-                Log.info("User to unsubscribe from does not exist.");
-                return Result.error(ErrorCode.NOT_FOUND);
-            }
-
-            subscribers.get(userSub).get(serviceDomain).remove(user);
-
-        } else {
-            // Check if userSub exists (if it is in another domain)
-            Result<Void> res2 = verifyUser(userSub, "");
-            if (res2.error() == ErrorCode.NOT_FOUND) {
-                Log.info("User to unsubscribe from does not exist.");
-                return Result.error(ErrorCode.NOT_FOUND);
-            }
-
-            //Propagate unsubscription to other server
-            propagateSubChange(user, userSub, false);
-
+        // Check if userSub exists (if it is in another domain)
+        Result<Void> res2 = verifyUser(userSub, "");
+        if (res2.error() == ErrorCode.NOT_FOUND) {
+            Log.info("User to unsubscribe from does not exist.");
+            return Result.error(ErrorCode.NOT_FOUND);
         }
+
+        String userSubDomain = userSub.split(AT)[1];
+        //Propagate unsubscription
+        new Thread (() -> feedClients
+                .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(userSubDomain))
+                .changeSubStatus(user, userSub, false)).start();
+
 
         subscribedTo.get(user).remove(userSub);
 
@@ -245,35 +224,28 @@ public class JavaFeeds implements Feeds {
         Log.info("deleteFeed: user = " + user);
 
         personalFeeds.remove(user);
-        subscribedTo.remove(user);
-        subscribers.remove(user);
-        for (String u: subscribedTo.keySet()) {                   // ISTO ESTA A APAGAR DOS SUBSCRIBERS QUE ESTAO NOUTRO DOMINIO?
+
+        // Remove this user from subscriber lists of all users he is subscribed to
+        for (String u: subscribedTo.get(user)) {                   // ISTO ESTA A APAGAR DOS SUBSCRIBERS QUE ESTAO NOUTRO DOMINIO?
             subscribers.get(u).get(serviceDomain).remove(user);    // TALVEZ PRECISE DE COMPUTE IF PRESENT (CONFIRMAR SE TA CERTO)
         }
+        subscribedTo.remove(user);
+
+        // Remove this user from subscriber lists of all users that are subscribed to him
+        subscribers.remove(user);
 
         return Result.ok();
     }
 
-    private void propagateSubChange(String user, String userSub, boolean subscribing) {
-        Log.info("propagateSubChange : user = " + user + "; userSub = " + userSub);
-
-        String userSubDomain = userSub.split(AT)[1];
-        feedClients
-                .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(userSubDomain))
-                .changeSubStatus(user, userSub, subscribing);
-
-
-    }
-
     @Override
-    public Result<Void> addMessageToUsers(Message msg, String users) {   // TALVEZ FAZER COM QUE ISTO RECEBA UM SET DE USERS
+    public Result<Void> addMessageToUsers(Message msg, String users) {
         String[] usersToAddMessage = users.split(",");
 
         Log.info("addMessageToUsers : msg = " + msg + "; users = " + users);
         Log.info ("domain: " + serviceDomain);
         long mid = msg.getId();
 
-        for (String user : usersToAddMessage) {        // TALVEZ ITERAR SOBRE ENTRIES EM VEZ DE KEYS
+        for (String user : usersToAddMessage) {
             Log.info("addMessageToUsers (DEBUG) : user = " + user);
             personalFeeds.get(user).put(mid, msg);
         }
