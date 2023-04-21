@@ -58,12 +58,13 @@ public class JavaFeeds implements Feeds {
         // Propagate messages to subscribers
         new Thread(() -> {
             Set<String> domains = subscribers.get(user).keySet();
+            Map<String, Set<String>> subsByDomain = subscribers.get(user);
 
             domains.stream()
                     .parallel()
                     .forEach(d -> feedClients
                             .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
-                            .addMessageToUsers(msg, String.join(",",subscribers.get(user).get(d))));
+                            .addMessageToUsers(msg, String.join(",",subsByDomain.get(d))));
         }).start();
 
         return Result.ok(msg.getId());
@@ -239,10 +240,11 @@ public class JavaFeeds implements Feeds {
 
     @Override
     public Result<Void> addMessageToUsers(Message msg, String users) {
-        String[] usersToAddMessage = users.split(",");
+
+        // Check if there are users to add message to
+        String[] usersToAddMessage = users.isEmpty() ? new String[0] : users.split(",");
 
         Log.info("addMessageToUsers : msg = " + msg + "; users = " + users);
-        Log.info ("domain: " + serviceDomain);
         long mid = msg.getId();
 
         for (String user : usersToAddMessage) {
