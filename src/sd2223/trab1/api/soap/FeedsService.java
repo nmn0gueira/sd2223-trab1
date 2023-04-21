@@ -130,7 +130,7 @@ public interface FeedsService {
 	 * @param msg message to be added to subscribed users' feeds
 	 */
 	@WebMethod
-	void addMessage(Message msg) throws FeedsException;
+	void addMessageToUsers(Message msg) throws FeedsException;
 
 	/**
 	 * Receive a subscription change from a user outside the domain

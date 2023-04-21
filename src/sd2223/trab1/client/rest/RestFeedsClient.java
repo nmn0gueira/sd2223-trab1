@@ -108,7 +108,7 @@ public class RestFeedsClient extends RestClient implements Feeds {
         return super.toJavaResult(r, Void.class);
     }
 
-    private Result<Void> clt_addMessage(Message msg) {
+    private Result<Void> clt_addMessageToUsers(Message msg) {
 
         Response r = target.path("add")
                 .request()
@@ -178,8 +178,8 @@ public class RestFeedsClient extends RestClient implements Feeds {
     }
 
     @Override
-    public Result<Void> addMessage(Message msg) {
-        return super.reTry(() -> clt_addMessage(msg));
+    public Result<Void> addMessageToUsers(Message msg) {
+        return super.reTry(() -> clt_addMessageToUsers(msg));
     }
 
     @Override

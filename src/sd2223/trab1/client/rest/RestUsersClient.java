@@ -40,14 +40,6 @@ public class RestUsersClient extends RestClient implements Users {
 
 		return super.toJavaResult(r, User.class);
 	}
-	
-	private Result<Void> clt_verifyPassword(String name, String pwd) {
-		Response r = target.path( name ).path(UsersService.PWD)
-				.queryParam(UsersService.PWD, pwd).request()
-				.get();
-
-		return super.toJavaResult(r, Void.class);
-	}
 
 	private Result<User> clt_updateUser(String userId, String password, User user) {
 		Response r = target.path( userId )
@@ -80,11 +72,6 @@ public class RestUsersClient extends RestClient implements Users {
 	@Override
 	public Result<User> getUser(String name, String pwd) {
 		return super.reTry(() -> clt_getUser(name, pwd));
-	}
-	
-	@Override
-	public Result<Void> verifyPassword(String name, String pwd) {
-		return super.reTry(() -> clt_verifyPassword(name, pwd));
 	}
 
 	@Override

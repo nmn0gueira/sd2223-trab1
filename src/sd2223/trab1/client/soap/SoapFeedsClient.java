@@ -76,8 +76,8 @@ public class SoapFeedsClient extends SoapClient implements Feeds {
     }
 
     @Override
-    public Result<Void> addMessage(Message msg) {
-        return super.reTry( () -> super.toJavaResult( () -> stub().addMessage(msg) ) );
+    public Result<Void> addMessageToUsers(Message msg) {
+        return super.reTry( () -> super.toJavaResult( () -> stub().addMessageToUsers(msg) ) );
     }
 
     @Override

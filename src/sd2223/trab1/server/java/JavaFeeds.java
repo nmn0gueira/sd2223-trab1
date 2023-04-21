@@ -68,7 +68,7 @@ public class JavaFeeds implements Feeds {
                     .parallel()
                     .forEach(d -> feedClients
                             .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
-                            .addMessage(msg));
+                            .addMessageToUsers(msg)); ///ALTERAR ISTO
         }).start();
 
         return Result.ok(msg.getId());
@@ -269,17 +269,15 @@ public class JavaFeeds implements Feeds {
     }
 
     @Override
-    public Result<Void> addMessage(Message msg) {   // TALVEZ FAZER COM QUE ISTO RECEBA UM SET DE USERS
+    public Result<Void> addMessageToUsers(Message msg) {   // TALVEZ FAZER COM QUE ISTO RECEBA UM SET DE USERS
         Log.info("addMessage : msg = " + msg);
 
-        String poster = msg.getUser() + AT + msg.getDomain();
+        String user = msg.getUser() +  AT + msg.getDomain();
         long mid = msg.getId();
 
-        for (String user : personalFeeds.keySet()) {        // TALVEZ ITERAR SOBRE ENTRIES EM VEZ DE KEYS
-            if (subscribedTo.get(user).contains(poster)) {
-                personalFeeds.get(user).put(mid, msg);
-                Log.info(user + " is subscribed to " + poster + "; message added");
-            }
+        for (String u : personalFeeds.keySet()) {        // TALVEZ ITERAR SOBRE ENTRIES EM VEZ DE KEYS
+            if (subscribedTo.get(u).contains(user))
+                personalFeeds.get(u).put(mid, msg);
         }
 
         return Result.ok();
@@ -306,7 +304,7 @@ public class JavaFeeds implements Feeds {
 
         var userClient = userClients.computeIfAbsent(userDomain, k -> UsersClientFactory.get(userDomain));
 
-        var res = userClient.verifyPassword(userName, pwd);
+        var res = userClient.getUser(userName, pwd);
         if (!res.isOK()) {  // If request failed throw given error
             return Result.error(res.error());
         }

@@ -161,7 +161,7 @@ public interface FeedsService {
 	 */
 	@POST
 	@Path("/add")
-	void addMessage(Message msg);
+	void addMessageToUsers(Message msg);
 
 	/**
 	 * Receive a subscription change from a user outside the domain

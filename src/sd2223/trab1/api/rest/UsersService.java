@@ -94,17 +94,4 @@ public interface UsersService {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	List<User> searchUsers(@QueryParam(QUERY) String pattern);
-
-	/**
-	 * Verifies if the password is correct for the user identified by name
-	 * @param name the name of the user
-	 * @param pwd password of the user
-	 * @return 200 if the password is correct
-	 *         403 if the password is incorrect
-	 *         404 if no user exists with the provided userId
-	 *         400 otherwise
-	 */
-	@GET
-	@Path("/{" + NAME+ "}/" + PWD)
-	void verifyPassword(@PathParam(NAME) String name, @QueryParam(PWD) String pwd);
 }
