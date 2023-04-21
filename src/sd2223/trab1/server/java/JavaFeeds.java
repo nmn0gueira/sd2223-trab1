@@ -225,15 +225,16 @@ public class JavaFeeds implements Feeds {
         Log.info("deleteFeed: user = " + user);
 
         personalFeeds.remove(user);
-
-        // Remove this user from subscriber lists of all users he is subscribed to
-        for (String u: subscribedTo.get(user)) {                   // ISTO ESTA A APAGAR DOS SUBSCRIBERS QUE ESTAO NOUTRO DOMINIO?
-            subscribers.get(u).get(serviceDomain).remove(user);    // TALVEZ PRECISE DE COMPUTE IF PRESENT (CONFIRMAR SE TA CERTO)
-        }
         subscribedTo.remove(user);
+        subscribers.remove(user);
+        // Remove this user from subscriber lists of all users he is subscribed to
+        for (String u: subscribedTo.keySet()) {                   // ISTO ESTA A APAGAR DOS SUBSCRIBERS QUE ESTAO NOUTRO DOMINIO?
+            subscribers.get(u).get(serviceDomain).remove(user);
+        }
+
 
         // Remove this user from subscriber lists of all users that are subscribed to him
-        subscribers.remove(user);
+
 
         return Result.ok();
     }
