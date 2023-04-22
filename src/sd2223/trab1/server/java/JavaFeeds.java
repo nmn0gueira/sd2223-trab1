@@ -11,6 +11,7 @@ import sd2223.trab1.client.UsersClientFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 public class JavaFeeds implements Feeds {
@@ -20,8 +21,8 @@ public class JavaFeeds implements Feeds {
     private static final int DOMAIN_NAME_INDEX = 1;
     private static final int MESSAGE_ID_FACTOR = 256; // Used to generate message id
 
-    private final Map<String, Map<String, Set<String>>> subscribers = new ConcurrentHashMap<>(); // User with subscribers -> Domain -> Set of users from domain
-    private final Map<String, Set<String>> subscribedTo = new ConcurrentHashMap<>(); // Users-> Set of users subscribed
+    private final Map<String, Map<String, Set<String>>> subscribers = new ConcurrentHashMap<>(); // User with subscribers -> Domain -> Set of subscribers in domain
+    private final Map<String, Map<String, Set<String>>> subscribedTo = new ConcurrentHashMap<>(); // Users -> Domain -> Set of users subscribed in domain
     private final Map<String, Map<Long,Message>> personalFeeds = new ConcurrentHashMap<>();
     private final Map<String, Users> userClients = new ConcurrentHashMap<>(); // Domain -> UsersClient
     private final Map<String, Feeds> feedClients = new ConcurrentHashMap<>(); // Domain -> FeedsClient
@@ -128,7 +129,7 @@ public class JavaFeeds implements Feeds {
                 return Result.error(ErrorCode.NOT_FOUND);
             }
 
-            List<Message> list = new ArrayList<>();
+            List<Message> list = new LinkedList<>();
 
             for (Message m : messages.values())
                 if (m.getCreationTime() > time)
@@ -164,7 +165,7 @@ public class JavaFeeds implements Feeds {
                 .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(userSubDomain))
                 .changeSubStatus(user, userSub, true)).start();
 
-        subscribedTo.get(user).add(userSub);
+        subscribedTo.get(user).computeIfAbsent(userSubDomain, k -> new HashSet<>()).add(userSub);
 
         return Result.ok();
     }
@@ -191,7 +192,7 @@ public class JavaFeeds implements Feeds {
                 .changeSubStatus(user, userSub, false)).start();
 
 
-        subscribedTo.get(user).remove(userSub);
+        subscribedTo.get(user).get(userSubDomain).remove(userSub);
 
         return Result.ok();
     }
@@ -200,24 +201,24 @@ public class JavaFeeds implements Feeds {
     public Result<List<String>> listSubs(String user) {
         Log.info("listSubs : user = " + user);
 
-        Set<String> subs = subscribedTo.get(user);
+        Map<String, Set<String>> subs = subscribedTo.get(user);
 
         if (subs == null) {
             Log.info("User does not exist");
             return Result.error(ErrorCode.NOT_FOUND);
         }
 
-        return Result.ok(new ArrayList<>(subs));
+        // Convert all the sets of subscribers into a single list
+        return Result.ok(new LinkedList<>(subs.values().stream().flatMap(Collection::stream).collect(Collectors.toSet())));
     }
 
     @Override
     public Result<Void> createFeedInfo(String user) {
         Log.info("createFeed: user = " + user);
 
-        personalFeeds.put(user, new ConcurrentHashMap<>());
-        subscribedTo.put(user, new HashSet<>());
-        subscribers.put(user, new ConcurrentHashMap<>());
-        subscribers.get(user).put(serviceDomain, new HashSet<>()); // Add user's own domain
+        personalFeeds.put(user, new HashMap<>());
+        subscribedTo.compute(user, (k, v) -> new HashMap<>()).put(serviceDomain, new HashSet<>()); // Add user's own domain
+        subscribers.compute(user, (k, v) -> new HashMap<>()).put(serviceDomain, new HashSet<>()); // Add user's own domain
 
         return Result.ok();
     }
@@ -227,15 +228,14 @@ public class JavaFeeds implements Feeds {
         Log.info("deleteFeed: user = " + user);
 
         personalFeeds.remove(user);
-        subscribedTo.remove(user);
+        Set<String> toRemove = subscribedTo.remove(user).values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
         subscribers.remove(user);
-        // Remove this user from subscriber lists of all users he is subscribed to
-        for (String u: subscribedTo.keySet()) {                   // ISTO ESTA A APAGAR DOS SUBSCRIBERS QUE ESTAO NOUTRO DOMINIO?
+        // Remove this user from subscriber lists of all users he is subscribed to (including other domains)
+        for (String u: toRemove) {
             subscribers.get(u).get(serviceDomain).remove(user);
         }
 
-
-        // Remove this user from subscriber lists of all users that are subscribed to him
+        // Remove this user from the subscriber lists of all users subscribed to him (including other domains)
 
 
         return Result.ok();
