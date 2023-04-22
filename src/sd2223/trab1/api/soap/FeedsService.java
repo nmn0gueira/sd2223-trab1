@@ -1,7 +1,6 @@
 package sd2223.trab1.api.soap;
 
 import java.util.List;
-import java.util.Set;
 
 import jakarta.jws.WebMethod;
 import jakarta.jws.WebService;
@@ -10,9 +9,9 @@ import sd2223.trab1.api.Message;
 @WebService(serviceName=FeedsService.NAME, targetNamespace=FeedsService.NAMESPACE, endpointInterface=FeedsService.INTERFACE)
 public interface FeedsService {
 
-	static final String NAME = "feeds";
-	static final String NAMESPACE = "http://sd2223";
-	static final String INTERFACE = "sd2223.trab1.api.soap.FeedsService";
+	String NAME = "feeds";
+	String NAMESPACE = "http://sd2223";
+	String INTERFACE = "sd2223.trab1.api.soap.FeedsService";
 	
 	/**
 	 * Posts a new message in the feed, associating it to the feed of the specific user.
@@ -23,9 +22,8 @@ public interface FeedsService {
 	 * @param user user of the operation (format user@domain)
 	 * @param msg the message object to be posted to the server
 	 * @param pwd password of the user sending the message
-	 * @return	the unique numerical identifier for the posted message;
-	 * @throws 	FORBIDDEN if the publisher does not exist in the current domain or if the pwd is not correct
-	 *			BAD_REQUEST otherwise
+	 * @return the unique numerical identifier for the posted message;
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	long postMessage(String user, String pwd, Message msg) throws FeedsException;
@@ -38,8 +36,7 @@ public interface FeedsService {
 	 * @param user user feed being accessed (format user@domain)
 	 * @param mid the identifier of the message to be deleted
 	 * @param pwd password of the user
-	 * @throws	FORBIDDEN if the publisher does not exist in the current domain or if the pwd is not correct
-	 *			BAD_REQUEST otherwise
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	void removeFromPersonalFeed(String user, long mid, String pwd) throws FeedsException;
@@ -50,8 +47,8 @@ public interface FeedsService {
 	 * @param user user feed being accessed (format user@domain)
 	 * @param mid id of the message
 	 *
-	 * @return	the message if it exists;
-	 * @throws	NOT_FOUND	if the user or the message does not exist
+	 * @return the message if it exists;
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	Message getMessage(String user, long mid) throws FeedsException;
@@ -63,35 +60,33 @@ public interface FeedsService {
 	 * @param user user feed being accessed (format user@domain)
 	 * @param time the oldest time of the messages to be returned
 	 * @return	a list of messages, potentially empty;
-	 * @throws 	NOT_FOUND if the user does not exist.
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	List<Message> getMessages(String user, long time) throws FeedsException;
 
 	/**
-	 * Subscribe a user.
+	 * Request to subscribe a user.
 	 * A user must contact the server of her domain directly (i.e., this operation should not be
 	 * propagated to other domain)
 	 *
 	 * @param user the user subscribing (following) other user (format user@domain)
 	 * @param userSub the user to be subscribed (followed) (format user@domain)
 	 * @param pwd password of the user to subscribe
-	 * @throws	NOT_FOUND if the user to be subscribed does not exist
-	 * 			FORBIDDEN if the user does not exist or if the pwd is not correct
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	void subUser(String user, String userSub, String pwd) throws FeedsException;
 
 	/**
-	 * UnSubscribe a user
+	 * Request to unsubscribe a user.
 	 * A user must contact the server of her domain directly (i.e., this operation should not be
 	 * propagated to other domain)
 	 *
 	 * @param user the user unsubscribing (following) other user (format user@domain)
 	 * @param userSub the identifier of the user to be unsubscribed (format user@domain)
 	 * @param pwd password of the user to subscribe
-	 * @throws FORBIDDEN if the user does not exist or if the pwd is not correct
-	 * 		   NOT_FOUND the userSub is not subscribed
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	void unsubscribeUser(String user, String userSub, String pwd) throws FeedsException;
@@ -100,7 +95,7 @@ public interface FeedsService {
 	 * Subscribed users.
 	 *
 	 * @param user user being accessed (format user@domain)
-	 * @throws 	NOT_FOUND if the user does not exist
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	List<String> listSubs(String user) throws FeedsException;
@@ -111,6 +106,7 @@ public interface FeedsService {
 	 * propagated to other domain)
 	 *
 	 * @param user user being accessed (format user@domain)
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	void createFeed(String user) throws FeedsException;
@@ -121,24 +117,28 @@ public interface FeedsService {
 	 * propagated to other domain)
 	 *
 	 * @param user user being accessed (format user@domain)
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	void deleteFeed(String user) throws FeedsException;
 
 	/**
-	 * Add a message to the personal feed of a users subscribed to the messages' sender.
+	 * Add a message to the personal feed of a set of users
 	 *
 	 * @param msg message to be added to subscribed users' feeds
+	 * @param users String.join(",", set of users to add messages to)
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	void addMessageToUsers(Message msg, String users) throws FeedsException;
 
 	/**
-	 * Receive a subscription change from a user outside the domain
+	 * Change subscription status of user to another user internally
 	 *
 	 * @param user user that is subbing/unsubbing (format user@domain)
 	 * @param userSub user that is getting subbed/unsubbed (format user@domain)
 	 * @param subscribing true if subscribing, false if unsubscribing
+	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
 	void changeSubStatus(String user, String userSub, boolean subscribing) throws FeedsException;

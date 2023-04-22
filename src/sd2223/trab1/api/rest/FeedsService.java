@@ -1,7 +1,6 @@
 package sd2223.trab1.api.rest;
 
 import java.util.List;
-import java.util.Set;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -15,7 +14,6 @@ public interface FeedsService {
 	String USER = "user";
 	String USERS = "users";
 	String TIME = "time";
-	String DOMAIN = "domain";
 	String USERSUB = "userSub";
 	
 	String PATH = "/feeds";
@@ -86,7 +84,7 @@ public interface FeedsService {
 
 
 	/**
-	 * Subscribe a user.
+	 * Request to subscribe a user.
 	 * A user must contact the server of her domain directly (i.e., this operation should not be
 	 * propagated to other domain)
 	 *
@@ -102,7 +100,7 @@ public interface FeedsService {
 	void subUser(@PathParam(USER) String user, @PathParam(USERSUB) String userSub, @QueryParam(PWD) String pwd);
 
 	/**
-	 * UnSubscribe a user
+	 * Request to unsubscribe a user
 	 * A user must contact the server of her domain directly (i.e., this operation should not be
 	 * propagated to other domain)
 	 *
@@ -156,7 +154,7 @@ public interface FeedsService {
 	void deleteFeedInfo(@PathParam(USER) String user);
 
 	/**
-	 * Add a message to the personal feed of a users subscribed to the messages' sender.
+	 * Add a message to the personal feed of a set of users
 	 *
 	 * @param msg message to be added to subscribed users' feeds
 	 * @param users String.join(",", set of users to add messages to)
@@ -167,24 +165,24 @@ public interface FeedsService {
 	void addMessageToUsers(Message msg, @QueryParam(USERS) String users);
 
 	/**
-	 * Receive a subscription change from a user outside the domain
+	 * Subscribe another user internally
 	 *
 	 * @param user user that is subbing (format user@domain)
 	 * @param userSub user that is getting subbed (format user@domain)
 	 * @return 	204 if ok
 	 */
 	@POST
-	@Path("/subscriber/{" + USERSUB + "}/{" + USER + "}")
-	void subscribeUserOutsideDomain(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
+	@Path("/subscriber/{" + USER + "}/{" + USERSUB + "}")
+	void changeSubStatusSubscribe(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
 
 	/**
-	 * Receive a subscription change from a user outside the domain
+	 * Unsubscribe another user internally
 	 *
 	 * @param user user that is unsubbing (format user@domain)
 	 * @param userSub user that is getting unsubbed (format user@domain)
 	 * @return 	204 if ok
 	 */
 	@DELETE
-	@Path("/subscriber/{" + USERSUB + "}/{" + USER + "}")
-	void unsubscribeUserOutsideDomain(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
+	@Path("/subscriber/{" + USER + "}/{" + USERSUB + "}")
+	void changeSubStatusUnsubscribe(@PathParam(USER) String user, @PathParam(USERSUB) String userSub);
 }

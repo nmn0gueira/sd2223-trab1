@@ -67,12 +67,12 @@ public class RestFeedsResource extends RestResource implements FeedsService {
     }
 
     @Override
-    public void subscribeUserOutsideDomain(String user, String userSub) {
+    public void changeSubStatusSubscribe(String user, String userSub) {
         super.fromJavaResult(impl.changeSubStatus(user, userSub,true));
     }
 
     @Override
-    public void unsubscribeUserOutsideDomain(String user, String userSub) {
+    public void changeSubStatusUnsubscribe(String user, String userSub) {
         super.fromJavaResult(impl.changeSubStatus(user, userSub,false));
     }
 
