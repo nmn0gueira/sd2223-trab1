@@ -1,6 +1,5 @@
 package sd2223.trab1.api.java;
 import java.util.List;
-import java.util.Set;
 
 import sd2223.trab1.api.Message;
 

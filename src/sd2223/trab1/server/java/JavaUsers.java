@@ -45,7 +45,7 @@ public class JavaUsers implements Users {
 
 		String nameAndDomain = user.getName().concat(AT + user.getDomain());
 
-		feedClient.createFeedInfo(nameAndDomain);
+		new Thread(() -> feedClient.createFeedInfo(nameAndDomain));
 
 		return Result.ok(nameAndDomain);
 	}
@@ -110,7 +110,7 @@ public class JavaUsers implements Users {
 
 		String nameAndDomain = user.getName().concat(AT + user.getDomain());
 
-		feedClient.deleteFeedInfo(nameAndDomain);
+		new Thread(() -> feedClient.deleteFeedInfo(nameAndDomain));
 
 		return Result.ok(user);
 	}

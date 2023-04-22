@@ -69,7 +69,7 @@ class DiscoveryImpl implements Discovery {
 
 	private static Discovery singleton;
 
-	private final Map<String, List<URI>> discoveredServices;	// serviceName.domain -> List<URI>
+	private final Map<String, List<URI>> discoveredServices;	// serviceName.serviceDomain -> List<URI>
 
 	synchronized static Discovery getInstance() {
 		if (singleton == null) {
@@ -85,11 +85,11 @@ class DiscoveryImpl implements Discovery {
 	}
 
 	@Override
-	public void announce(String domain, String serviceName, String serviceURI) {
-		Log.info(String.format("Starting Discovery announcements on: %s for: %s -> %s\n", DISCOVERY_ADDR, serviceName,
+	public void announce(String serviceDomain, String serviceName, String serviceURI) {
+		Log.info(String.format("Starting Discovery announcements on: %s for: %s.%s -> %s\n", DISCOVERY_ADDR, serviceName, serviceDomain,
 				serviceURI));
 
-		var pktBytes = String.format("%s:%s%s%s", domain, serviceName, DELIMITER, serviceURI).getBytes();
+		var pktBytes = String.format("%s:%s%s%s", serviceDomain, serviceName, DELIMITER, serviceURI).getBytes();
 		var pkt = new DatagramPacket(pktBytes, pktBytes.length, DISCOVERY_ADDR);
 
 		// start thread to send periodic announcements

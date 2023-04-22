@@ -2,7 +2,6 @@ package sd2223.trab1.client.soap;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 

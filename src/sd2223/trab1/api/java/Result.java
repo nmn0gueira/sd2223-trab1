@@ -15,7 +15,7 @@ public interface Result<T> {
 	 * @author smd
 	 *
 	 * Service errors:
-	 * OK - no error, implies a non-null result of type T, except for for Void operations
+	 * OK - no error, implies a non-null result of type T, except for Void operations
 	 * CONFLICT - something is being created but already exists
 	 * NOT_FOUND - access occurred to something that does not exist
 	 * INTERNAL_ERROR - something unexpected happened

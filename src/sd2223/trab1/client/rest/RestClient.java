@@ -20,7 +20,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 public class RestClient {
-	private static Logger Log = Logger.getLogger(RestClient.class.getName());
+	private static final Logger Log = Logger.getLogger(RestClient.class.getName());
 
 	protected static final int READ_TIMEOUT = 10000;
 	protected static final int CONNECT_TIMEOUT = 10000;

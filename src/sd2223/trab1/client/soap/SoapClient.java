@@ -33,7 +33,7 @@ abstract class SoapClient {
 	protected static final int MAX_RETRIES = 10;
 	protected static final int RETRY_SLEEP = 3000;
 
-	private static Logger Log = Logger.getLogger(SoapClient.class.getName());
+	private static final Logger Log = Logger.getLogger(SoapClient.class.getName());
 
 	protected static final String WSDL = "?wsdl";
 

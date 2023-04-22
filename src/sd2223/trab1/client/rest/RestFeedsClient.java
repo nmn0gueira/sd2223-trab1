@@ -11,10 +11,7 @@ import sd2223.trab1.api.java.Result;
 import sd2223.trab1.api.rest.FeedsService;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class RestFeedsClient extends RestClient implements Feeds {
 
