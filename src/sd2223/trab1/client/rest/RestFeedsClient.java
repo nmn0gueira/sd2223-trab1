@@ -21,6 +21,8 @@ public class RestFeedsClient extends RestClient implements Feeds {
     private static final String PATH_CREATE = "create";
     private static final String PATH_DELETE = "delete";
     private static final String PATH_ADD = "add";
+    private static final String PATH_UNSUB_ALL = "unsubAll";
+    private static final String PATH_REMOVE_ALL_SUBS = "removeAllSubs";
     private static final String PATH_SUBSCRIBER = "subscriber";
 
     final WebTarget target;
@@ -125,6 +127,24 @@ public class RestFeedsClient extends RestClient implements Feeds {
         return super.toJavaResult(r, Void.class);
     }
 
+    private Result<Void> clt_removeUserFromSubscribers(String userRem, String users) {
+
+        Response r = target.path(PATH_UNSUB_ALL).path(userRem).queryParam(FeedsService.USERS, users)
+                .request()
+                .delete();
+
+        return super.toJavaResult(r, Void.class);
+    }
+
+    private Result<Void> clt_removeUserFromSubscribedTo(String userRem, String users) {
+
+        Response r = target.path(PATH_REMOVE_ALL_SUBS).path(userRem).queryParam(FeedsService.USERS, users)
+                .request()
+                .delete();
+
+        return super.toJavaResult(r, Void.class);
+    }
+
     private Result<Void> clt_changeSubStatus(String user, String userSub, boolean subscribing) {
         Response r;
         Invocation.Builder b = target.path(PATH_SUBSCRIBER).path(user).path(userSub).request();
@@ -185,6 +205,16 @@ public class RestFeedsClient extends RestClient implements Feeds {
     @Override
     public Result<Void> addMessageToUsers(Message msg, String users) {
         return super.reTry(() -> clt_addMessageToUsers(msg, users));
+    }
+
+    @Override
+    public Result<Void> removeUserFromSubscribers(String userRem, String users) {
+        return super.reTry(() -> clt_removeUserFromSubscribers(userRem, users));
+    }
+
+    @Override
+    public Result<Void> removeUserFromSubscribedTo(String userRem, String users) {
+        return super.reTry(() -> clt_removeUserFromSubscribedTo(userRem, users));
     }
 
     @Override

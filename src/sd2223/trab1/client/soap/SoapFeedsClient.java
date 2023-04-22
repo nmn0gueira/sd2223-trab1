@@ -81,6 +81,16 @@ public class SoapFeedsClient extends SoapClient implements Feeds {
     }
 
     @Override
+    public Result<Void> removeUserFromSubscribers(String userRem, String users) {
+        return super.reTry( () -> super.toJavaResult( () -> stub().removeUserFromSubscribers(userRem, users) ) );
+    }
+
+    @Override
+    public Result<Void> removeUserFromSubscribedTo(String userRem, String users) {
+        return super.reTry( () -> super.toJavaResult( () -> stub().removeUserFromSubscribedTo(userRem, users) ) );
+    }
+
+    @Override
     public Result<Void> changeSubStatus(String user, String userSub, boolean subscribing) {
         return super.reTry( () -> super.toJavaResult( () -> stub().changeSubStatus(user, userSub, subscribing) ));
     }

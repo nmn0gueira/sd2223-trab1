@@ -70,6 +70,16 @@ public class SoapFeedsWebService extends SoapWebService<FeedsException> implemen
     }
 
     @Override
+    public void removeUserFromSubscribers(String user, String users) throws FeedsException {
+        super.fromJavaResult(impl.removeUserFromSubscribers(user, users));
+    }
+
+    @Override
+    public void removeUserFromSubscribedTo(String user, String users) throws FeedsException {
+        super.fromJavaResult(impl.removeUserFromSubscribedTo(user, users));
+    }
+
+    @Override
     public void changeSubStatus(String user, String userSub, boolean subscribing) throws FeedsException{
         super.fromJavaResult(impl.changeSubStatus(user, userSub, subscribing));
     }
