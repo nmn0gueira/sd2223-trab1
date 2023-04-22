@@ -13,10 +13,11 @@ public class FeedsClientFactory {
     private static final String REST = "/rest";
     private static final String SOAP = "/soap";
     private static final String FEEDS = "feeds.";
+    private static final int MIN_REPLIES = 1;
 
     public static Feeds get(String domain) {
 
-        URI serverURI = Discovery.getInstance().knownUrisOf(FEEDS + domain, 1)[0];
+        URI serverURI = Discovery.getInstance().knownUrisOf(FEEDS + domain, MIN_REPLIES)[0];
         var uriString = serverURI.toString();
 
         if (uriString.endsWith(REST))

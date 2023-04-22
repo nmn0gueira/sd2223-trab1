@@ -12,10 +12,11 @@ public class UsersClientFactory {
 	private static final String REST = "/rest";
 	private static final String SOAP = "/soap";
 	private static final String USERS = "users.";
+	private static final int MIN_REPLIES = 1;
 
 	public static Users get(String domain) {
 
-		URI serverURI = Discovery.getInstance().knownUrisOf(USERS + domain, 1)[0];
+		URI serverURI = Discovery.getInstance().knownUrisOf(USERS + domain, MIN_REPLIES)[0];
 		var uriString = serverURI.toString();
 
 		if (uriString.endsWith(REST))

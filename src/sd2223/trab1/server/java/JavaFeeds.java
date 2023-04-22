@@ -16,6 +16,8 @@ import java.util.logging.Logger;
 public class JavaFeeds implements Feeds {
 
     private static final String AT = "@"; // Used to concatenate name and domain
+    private static final int USER_NAME_INDEX = 0;
+    private static final int DOMAIN_NAME_INDEX = 1;
     private static final int MESSAGE_ID_FACTOR = 256; // Used to generate message id
 
     private final Map<String, Map<String, Set<String>>> subscribers = new ConcurrentHashMap<>(); // User with subscribers -> Domain -> Set of users from domain
@@ -40,7 +42,7 @@ public class JavaFeeds implements Feeds {
         Log.info("postMessage : user = " + user + "; pwd = " + pwd + "; msg = " + msg);
 
         // Check if user or message is valid (if it is null or if domain does not match)
-        if (user == null || msg == null || !user.split(AT)[1].equals(msg.getDomain())) {
+        if (user == null || msg == null || !user.split(AT)[DOMAIN_NAME_INDEX].equals(msg.getDomain())) {
             Log.info("Message object invalid.");
             return Result.error(ErrorCode.BAD_REQUEST);
         }
@@ -92,7 +94,7 @@ public class JavaFeeds implements Feeds {
     public Result<Message> getMessage(String user, long mid) {
         Log.info("getMessage : user = " + user + "; mid = " + mid);
 
-        String userDomain = user.split(AT)[1];
+        String userDomain = user.split(AT)[DOMAIN_NAME_INDEX];
 
         // If user is supposed to be in this domain
         if (userDomain.equals(serviceDomain)) {
@@ -116,7 +118,7 @@ public class JavaFeeds implements Feeds {
     public Result<List<Message>> getMessages(String user, long time) {
         Log.info("getMessages : user = " + user + "; time = " + time);
 
-        String userDomain = user.split(AT)[1];
+        String userDomain = user.split(AT)[DOMAIN_NAME_INDEX];
 
         if (userDomain.equals(serviceDomain)) {
 
@@ -157,7 +159,7 @@ public class JavaFeeds implements Feeds {
         }
 
         //Propagate subscription
-        String userSubDomain = userSub.split(AT)[1];
+        String userSubDomain = userSub.split(AT)[DOMAIN_NAME_INDEX];
         new Thread (() -> feedClients
                 .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(userSubDomain))
                 .changeSubStatus(user, userSub, true)).start();
@@ -182,7 +184,7 @@ public class JavaFeeds implements Feeds {
             return Result.error(ErrorCode.NOT_FOUND);
         }
 
-        String userSubDomain = userSub.split(AT)[1];
+        String userSubDomain = userSub.split(AT)[DOMAIN_NAME_INDEX];
         //Propagate unsubscription
         new Thread (() -> feedClients
                 .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(userSubDomain))
@@ -260,7 +262,7 @@ public class JavaFeeds implements Feeds {
     public Result<Void> changeSubStatus(String user, String userSub, boolean subscribing) {
         Log.info("changeSubStatus : user = " + user + "; userSub = " + userSub);
 
-        String userDomain = user.split(AT)[1];
+        String userDomain = user.split(AT)[DOMAIN_NAME_INDEX];
         if (subscribing) {
             subscribers.get(userSub).computeIfAbsent(userDomain, k -> new HashSet<>()).add(user);
         } else {
@@ -272,8 +274,8 @@ public class JavaFeeds implements Feeds {
 
     private Result<Void> verifyUser(String user, String pwd) {
         String[] userInfo = user.split(AT);
-        String userName = userInfo[0];
-        String userDomain = userInfo[1];
+        String userName = userInfo[USER_NAME_INDEX];
+        String userDomain = userInfo[DOMAIN_NAME_INDEX];
 
         var userClient = userClients.computeIfAbsent(userDomain, k -> UsersClientFactory.get(userDomain));
 
