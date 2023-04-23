@@ -227,16 +227,33 @@ public class JavaFeeds implements Feeds {
     public Result<Void> deleteFeedInfo(String user) {
         Log.info("deleteFeed: user = " + user);
 
+        // Remove this user from subscribedTo lists of all users that are subscribed to him
+        new Thread(() -> {
+            Set<String> domains = subscribers.get(user).keySet();
+            Map<String, Set<String>> subsByDomain = subscribers.get(user);
+
+            domains.stream()
+                    .parallel()
+                    .forEach(d -> feedClients
+                            .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
+                            .removeUserFromSubscribers(user, String.join(",",subsByDomain.get(d))));
+        }).start();
+
+        // Remove this user from subscriber lists of all users they were subscribed to
+        new Thread(() -> {
+            Set<String> domains = subscribedTo.get(user).keySet();
+            Map<String, Set<String>> subbedToByDomain = subscribedTo.get(user);
+
+            domains.stream()
+                    .parallel()
+                    .forEach(d -> feedClients
+                            .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
+                            .removeUserFromSubscribedTo(user, String.join(",",subbedToByDomain.get(d))));
+        }).start();
+
         personalFeeds.remove(user);
-        Set<String> toRemove = subscribedTo.remove(user).values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+        subscribedTo.remove(user);
         subscribers.remove(user);
-        // Remove this user from subscriber lists of all users he is subscribed to (including other domains)
-        for (String u: toRemove) {
-            subscribers.get(u).get(serviceDomain).remove(user);
-        }
-
-        // Remove this user from the subscriber lists of all users subscribed to him (including other domains)
-
 
         return Result.ok();
     }
@@ -253,6 +270,34 @@ public class JavaFeeds implements Feeds {
         for (String user : usersToAddMessage) {
             Log.info("addMessageToUsers (DEBUG) : user = " + user);
             personalFeeds.get(user).put(mid, msg);
+        }
+
+        return Result.ok();
+    }
+
+    @Override
+    public Result<Void> removeUserFromSubscribers(String userRem, String users) {
+        Log.info("removeUserFromSubscribers : user = " + userRem + "; users = " + users);
+
+        String[] usersToUpdate = users.isEmpty() ? new String[0] : users.split(",");
+        String domain = userRem.split(AT)[DOMAIN_NAME_INDEX];
+
+        for (String u : usersToUpdate) {
+            subscribedTo.get(u).get(domain).remove(userRem);
+        }
+
+        return Result.ok();
+    }
+
+    @Override
+    public Result<Void> removeUserFromSubscribedTo(String userRem, String users) {
+        Log.info("removeUserFromSubscribedTo : user = " + userRem + "; users = " + users);
+
+        String[] usersToUpdate = users.isEmpty() ? new String[0] : users.split(",");
+        String domain = userRem.split(AT)[DOMAIN_NAME_INDEX];
+
+        for (String u : usersToUpdate) {
+            subscribers.get(u).get(domain).remove(userRem);
         }
 
         return Result.ok();

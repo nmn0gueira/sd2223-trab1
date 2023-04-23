@@ -133,6 +133,26 @@ public interface FeedsService {
 	void addMessageToUsers(Message msg, String users) throws FeedsException;
 
 	/**
+	 * Remove a user from their subscribers' list of subscriptions
+	 *
+	 * @param user user that has been deleted
+	 * @param users String.join(",", set of users to update)
+	 * @throws FeedsException otherwise
+	 */
+	@WebMethod
+	void removeUserFromSubscribers(String user, String users) throws FeedsException;
+
+	/**
+	 * Remove a user from their subscribed users' list of subscribers
+	 *
+	 * @param user user that has been deleted
+	 * @param users String.join(",", set of users to update)
+	 * @throws FeedsException otherwise
+	 */
+	@WebMethod
+	void removeUserFromSubscribedTo(String user, String users) throws FeedsException;
+
+	/**
 	 * Change subscription status of user to another user internally
 	 *
 	 * @param user user that is subbing/unsubbing (format user@domain)

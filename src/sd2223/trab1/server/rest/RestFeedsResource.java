@@ -67,6 +67,16 @@ public class RestFeedsResource extends RestResource implements FeedsService {
     }
 
     @Override
+    public void removeUserFromSubscribers(String user, String users) {
+        super.fromJavaResult(impl.removeUserFromSubscribers(user, users));
+    }
+
+    @Override
+    public void removeUserFromSubscribedTo(String user, String users) {
+        super.fromJavaResult(impl.removeUserFromSubscribedTo(user, users));
+    }
+
+    @Override
     public void changeSubStatusSubscribe(String user, String userSub) {
         super.fromJavaResult(impl.changeSubStatus(user, userSub,true));
     }

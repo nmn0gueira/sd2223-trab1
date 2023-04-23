@@ -25,5 +25,9 @@ public interface Feeds {
 
 	Result<Void> addMessageToUsers(Message msg, String users);
 
+	Result<Void> removeUserFromSubscribers(String userRem, String users);
+
+	Result<Void> removeUserFromSubscribedTo(String userRem, String users);
+
 	Result<Void> changeSubStatus(String user, String userSub, boolean subscribing);
 }
