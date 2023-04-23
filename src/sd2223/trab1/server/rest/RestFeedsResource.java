@@ -6,7 +6,6 @@ import sd2223.trab1.api.rest.FeedsService;
 import sd2223.trab1.server.java.JavaFeeds;
 
 import java.util.List;
-import java.util.Set;
 
 public class RestFeedsResource extends RestResource implements FeedsService {
 
@@ -72,8 +71,8 @@ public class RestFeedsResource extends RestResource implements FeedsService {
     }
 
     @Override
-    public void removeUserFromSubscribedTo(String user, String users) {
-        super.fromJavaResult(impl.removeUserFromSubscribedTo(user, users));
+    public void removeUserFromSubscriptions(String user, String users) {
+        super.fromJavaResult(impl.removeUserFromSubscriptions(user, users));
     }
 
     @Override

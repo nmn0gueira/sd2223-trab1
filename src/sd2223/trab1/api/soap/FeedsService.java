@@ -150,7 +150,7 @@ public interface FeedsService {
 	 * @throws FeedsException otherwise
 	 */
 	@WebMethod
-	void removeUserFromSubscribedTo(String user, String users) throws FeedsException;
+	void removeUserFromSubscriptions(String user, String users) throws FeedsException;
 
 	/**
 	 * Change subscription status of user to another user internally

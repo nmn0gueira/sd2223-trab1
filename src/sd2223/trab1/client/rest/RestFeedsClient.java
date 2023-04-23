@@ -136,7 +136,7 @@ public class RestFeedsClient extends RestClient implements Feeds {
         return super.toJavaResult(r, Void.class);
     }
 
-    private Result<Void> clt_removeUserFromSubscribedTo(String userRem, String users) {
+    private Result<Void> clt_removeUserFromSubscriptions(String userRem, String users) {
 
         Response r = target.path(PATH_REMOVE_ALL_SUBS).path(userRem).queryParam(FeedsService.USERS, users)
                 .request()
@@ -213,8 +213,8 @@ public class RestFeedsClient extends RestClient implements Feeds {
     }
 
     @Override
-    public Result<Void> removeUserFromSubscribedTo(String userRem, String users) {
-        return super.reTry(() -> clt_removeUserFromSubscribedTo(userRem, users));
+    public Result<Void> removeUserFromSubscriptions(String userRem, String users) {
+        return super.reTry(() -> clt_removeUserFromSubscriptions(userRem, users));
     }
 
     @Override

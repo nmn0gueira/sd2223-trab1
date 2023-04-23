@@ -8,7 +8,6 @@ import sd2223.trab1.api.soap.FeedsService;
 import sd2223.trab1.server.java.JavaFeeds;
 
 import java.util.List;
-import java.util.Set;
 
 @WebService(serviceName= FeedsService.NAME, targetNamespace=FeedsService.NAMESPACE, endpointInterface=FeedsService.INTERFACE)
 public class SoapFeedsWebService extends SoapWebService<FeedsException> implements FeedsService{
@@ -75,8 +74,8 @@ public class SoapFeedsWebService extends SoapWebService<FeedsException> implemen
     }
 
     @Override
-    public void removeUserFromSubscribedTo(String user, String users) throws FeedsException {
-        super.fromJavaResult(impl.removeUserFromSubscribedTo(user, users));
+    public void removeUserFromSubscriptions(String user, String users) throws FeedsException {
+        super.fromJavaResult(impl.removeUserFromSubscriptions(user, users));
     }
 
     @Override

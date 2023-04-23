@@ -165,7 +165,7 @@ public interface FeedsService {
 	void addMessageToUsers(Message msg, @QueryParam(USERS) String users);
 
 	/**
-	 * Remove a user from their subscribers' list of subscriptions
+	 * Remove a user from a set of users' subscribers lists
 	 *
 	 * @param user user that has been deleted
 	 * @param users String.join(",", set of users to update)
@@ -176,7 +176,7 @@ public interface FeedsService {
 	void removeUserFromSubscribers(@PathParam(USER) String user, @QueryParam(USERS) String users);
 
 	/**
-	 * Remove a user from their subscribed users' list of subscribers
+	 * Remove a user from a set of users' subscriptions
 	 *
 	 * @param user user that has been deleted
 	 * @param users String.join(",", set of users to update)
@@ -184,7 +184,7 @@ public interface FeedsService {
 	 */
 	@DELETE
 	@Path("/removeAllSubs/{" + USER + "}")
-	void removeUserFromSubscribedTo(@PathParam(USER) String user, @QueryParam(USERS) String users);
+	void removeUserFromSubscriptions(@PathParam(USER) String user, @QueryParam(USERS) String users);
 
 	/**
 	 * Subscribe another user internally

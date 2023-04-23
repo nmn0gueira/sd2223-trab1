@@ -22,7 +22,7 @@ public class JavaFeeds implements Feeds {
     private static final int MESSAGE_ID_FACTOR = 256; // Used to generate message id
 
     private final Map<String, Map<String, Set<String>>> subscribers = new ConcurrentHashMap<>(); // User with subscribers -> Domain -> Set of subscribers in domain
-    private final Map<String, Map<String, Set<String>>> subscribedTo = new ConcurrentHashMap<>(); // Users -> Domain -> Set of users subscribed in domain
+    private final Map<String, Map<String, Set<String>>> subscriptions = new ConcurrentHashMap<>(); // Users -> Domain -> Set of users subscribed in domain
     private final Map<String, Map<Long,Message>> personalFeeds = new ConcurrentHashMap<>();
     private final Map<String, Users> userClients = new ConcurrentHashMap<>(); // Domain -> UsersClient
     private final Map<String, Feeds> feedClients = new ConcurrentHashMap<>(); // Domain -> FeedsClient
@@ -165,7 +165,7 @@ public class JavaFeeds implements Feeds {
                 .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(userSubDomain))
                 .changeSubStatus(user, userSub, true)).start();
 
-        subscribedTo.get(user).computeIfAbsent(userSubDomain, k -> new HashSet<>()).add(userSub);
+        subscriptions.get(user).computeIfAbsent(userSubDomain, k -> new HashSet<>()).add(userSub);
 
         return Result.ok();
     }
@@ -192,7 +192,7 @@ public class JavaFeeds implements Feeds {
                 .changeSubStatus(user, userSub, false)).start();
 
 
-        subscribedTo.get(user).get(userSubDomain).remove(userSub);
+        subscriptions.get(user).get(userSubDomain).remove(userSub);
 
         return Result.ok();
     }
@@ -201,7 +201,7 @@ public class JavaFeeds implements Feeds {
     public Result<List<String>> listSubs(String user) {
         Log.info("listSubs : user = " + user);
 
-        Map<String, Set<String>> subs = subscribedTo.get(user);
+        Map<String, Set<String>> subs = subscriptions.get(user);
 
         if (subs == null) {
             Log.info("User does not exist");
@@ -217,8 +217,8 @@ public class JavaFeeds implements Feeds {
         Log.info("createFeed: user = " + user);
 
         personalFeeds.put(user, new HashMap<>());
-        subscribedTo.compute(user, (k, v) -> new HashMap<>()).put(serviceDomain, new HashSet<>()); // Add user's own domain
-        subscribers.compute(user, (k, v) -> new HashMap<>()).put(serviceDomain, new HashSet<>()); // Add user's own domain
+        subscriptions.put(user, new HashMap<>());
+        subscribers.put(user, new HashMap<>());
 
         return Result.ok();
     }
@@ -241,8 +241,8 @@ public class JavaFeeds implements Feeds {
                             .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
                             .removeUserFromSubscribers(user, String.join(",",subsByDomain.get(d))));
 
-            // Remove this user from subscribedTo lists of all users that are subscribed to him
-            Map<String, Set<String>> subbedToByDomain = subscribedTo.remove(user);
+            // Remove this user from subscription lists of all users that are subscribed to him
+            Map<String, Set<String>> subbedToByDomain = subscriptions.remove(user);
             Set<String> domains2 = subbedToByDomain.keySet();
 
 
@@ -250,7 +250,7 @@ public class JavaFeeds implements Feeds {
                     .parallel()
                     .forEach(d -> feedClients
                             .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
-                            .removeUserFromSubscribedTo(user, String.join(",",subbedToByDomain.get(d))));
+                            .removeUserFromSubscriptions(user, String.join(",",subbedToByDomain.get(d))));
         }).start();
 
         return Result.ok();
@@ -277,13 +277,15 @@ public class JavaFeeds implements Feeds {
     public Result<Void> removeUserFromSubscribers(String userRem, String users) {
         Log.info("removeUserFromSubscribers : user = " + userRem + "; users = " + users);
 
-        return removeUserFromMap(userRem, users, subscribedTo);
+        // All users subscribed to userRem will no longer include userRem in their subscription lists
+        return removeUserFromMap(userRem, users, subscriptions);
     }
 
     @Override
-    public Result<Void> removeUserFromSubscribedTo(String userRem, String users) {
-        Log.info("removeUserFromSubscribedTo : user = " + userRem + "; users = " + users);
+    public Result<Void> removeUserFromSubscriptions(String userRem, String users) {
+        Log.info("removeUserFromSubscriptions : user = " + userRem + "; users = " + users);
 
+        // All users that userRem was subscribed to will no longer include userRem in their subscriber lists
         return removeUserFromMap(userRem, users, subscribers);
     }
 
