@@ -60,8 +60,8 @@ public class JavaFeeds implements Feeds {
 
         // Propagate messages to subscribers
         new Thread(() -> {
-            Set<String> domains = subscribers.get(user).keySet();
             Map<String, Set<String>> subsByDomain = subscribers.get(user);
+            Set<String> domains = subsByDomain.keySet();
 
             domains.stream()
                     .parallel()
@@ -227,33 +227,31 @@ public class JavaFeeds implements Feeds {
     public Result<Void> deleteFeedInfo(String user) {
         Log.info("deleteFeed: user = " + user);
 
-        // Remove this user from subscribedTo lists of all users that are subscribed to him
-        new Thread(() -> {
-            Set<String> domains = subscribers.get(user).keySet();
-            Map<String, Set<String>> subsByDomain = subscribers.get(user);
+        personalFeeds.remove(user);
 
-            domains.stream()
+        new Thread(() -> {
+            // Remove this user from subscriber lists of all users they were subscribed to
+            Map<String, Set<String>> subsByDomain = subscribers.remove(user);
+            Set<String> domains1 = subsByDomain.keySet();
+
+
+            domains1.stream()
                     .parallel()
                     .forEach(d -> feedClients
                             .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
                             .removeUserFromSubscribers(user, String.join(",",subsByDomain.get(d))));
-        }).start();
 
-        // Remove this user from subscriber lists of all users they were subscribed to
-        new Thread(() -> {
-            Set<String> domains = subscribedTo.get(user).keySet();
-            Map<String, Set<String>> subbedToByDomain = subscribedTo.get(user);
+            // Remove this user from subscribedTo lists of all users that are subscribed to him
+            Map<String, Set<String>> subbedToByDomain = subscribedTo.remove(user);
+            Set<String> domains2 = subbedToByDomain.keySet();
 
-            domains.stream()
+
+            domains2.stream()
                     .parallel()
                     .forEach(d -> feedClients
                             .computeIfAbsent(d, k -> FeedsClientFactory.get(d))
                             .removeUserFromSubscribedTo(user, String.join(",",subbedToByDomain.get(d))));
         }).start();
-
-        personalFeeds.remove(user);
-        subscribedTo.remove(user);
-        subscribers.remove(user);
 
         return Result.ok();
     }
@@ -279,28 +277,14 @@ public class JavaFeeds implements Feeds {
     public Result<Void> removeUserFromSubscribers(String userRem, String users) {
         Log.info("removeUserFromSubscribers : user = " + userRem + "; users = " + users);
 
-        String[] usersToUpdate = users.isEmpty() ? new String[0] : users.split(",");
-        String domain = userRem.split(AT)[DOMAIN_NAME_INDEX];
-
-        for (String u : usersToUpdate) {
-            subscribedTo.get(u).get(domain).remove(userRem);
-        }
-
-        return Result.ok();
+        return removeUserFromMap(userRem, users, subscribedTo);
     }
 
     @Override
     public Result<Void> removeUserFromSubscribedTo(String userRem, String users) {
         Log.info("removeUserFromSubscribedTo : user = " + userRem + "; users = " + users);
 
-        String[] usersToUpdate = users.isEmpty() ? new String[0] : users.split(",");
-        String domain = userRem.split(AT)[DOMAIN_NAME_INDEX];
-
-        for (String u : usersToUpdate) {
-            subscribers.get(u).get(domain).remove(userRem);
-        }
-
-        return Result.ok();
+        return removeUserFromMap(userRem, users, subscribers);
     }
 
     @Override
@@ -328,6 +312,17 @@ public class JavaFeeds implements Feeds {
         if (!res.isOK()) {  // If request failed throw given error
             return Result.error(res.error());
         }
+        return Result.ok();
+    }
+
+    private Result<Void> removeUserFromMap(String userRem, String users, Map<String, Map<String, Set<String>>> map) {
+        String[] usersToUpdate = users.isEmpty() ? new String[0] : users.split(",");
+        String domain = userRem.split(AT)[DOMAIN_NAME_INDEX];
+
+        for (String u : usersToUpdate) {
+            map.get(u).get(domain).remove(userRem);
+        }
+
         return Result.ok();
     }
 }
