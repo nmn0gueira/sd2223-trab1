@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class JavaFeeds implements Feeds {
 
-    private static final String AT = "@"; // Used to concatenate name and domain
+    private static final String DOMAIN_SEPARATOR = "@"; // Used to concatenate name and domain
     private static final int USER_NAME_INDEX = 0;
     private static final int DOMAIN_NAME_INDEX = 1;
     private static final int MESSAGE_ID_FACTOR = 256; // Used to generate message id
@@ -43,7 +43,7 @@ public class JavaFeeds implements Feeds {
         Log.info("postMessage : user = " + user + "; pwd = " + pwd + "; msg = " + msg);
 
         // Check if user or message is valid (if it is null or if domain does not match)
-        if (user == null || msg == null || !user.split(AT)[DOMAIN_NAME_INDEX].equals(msg.getDomain())) {
+        if (user == null || msg == null || !user.split(DOMAIN_SEPARATOR)[DOMAIN_NAME_INDEX].equals(msg.getDomain())) {
             Log.info("Message object invalid.");
             return Result.error(ErrorCode.BAD_REQUEST);
         }
@@ -95,7 +95,7 @@ public class JavaFeeds implements Feeds {
     public Result<Message> getMessage(String user, long mid) {
         Log.info("getMessage : user = " + user + "; mid = " + mid);
 
-        String userDomain = user.split(AT)[DOMAIN_NAME_INDEX];
+        String userDomain = user.split(DOMAIN_SEPARATOR)[DOMAIN_NAME_INDEX];
 
         // If user is supposed to be in this domain
         if (userDomain.equals(serviceDomain)) {
@@ -119,7 +119,7 @@ public class JavaFeeds implements Feeds {
     public Result<List<Message>> getMessages(String user, long time) {
         Log.info("getMessages : user = " + user + "; time = " + time);
 
-        String userDomain = user.split(AT)[DOMAIN_NAME_INDEX];
+        String userDomain = user.split(DOMAIN_SEPARATOR)[DOMAIN_NAME_INDEX];
 
         if (userDomain.equals(serviceDomain)) {
 
@@ -160,7 +160,7 @@ public class JavaFeeds implements Feeds {
         }
 
         //Propagate subscription
-        String userSubDomain = userSub.split(AT)[DOMAIN_NAME_INDEX];
+        String userSubDomain = userSub.split(DOMAIN_SEPARATOR)[DOMAIN_NAME_INDEX];
         new Thread (() -> feedClients
                 .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(userSubDomain))
                 .changeSubStatus(user, userSub, true)).start();
@@ -185,7 +185,7 @@ public class JavaFeeds implements Feeds {
             return Result.error(ErrorCode.NOT_FOUND);
         }
 
-        String userSubDomain = userSub.split(AT)[DOMAIN_NAME_INDEX];
+        String userSubDomain = userSub.split(DOMAIN_SEPARATOR)[DOMAIN_NAME_INDEX];
         //Propagate unsubscription
         new Thread (() -> feedClients
                 .computeIfAbsent(userSubDomain, k -> FeedsClientFactory.get(userSubDomain))
@@ -293,7 +293,7 @@ public class JavaFeeds implements Feeds {
     public Result<Void> changeSubStatus(String user, String userSub, boolean subscribing) {
         Log.info("changeSubStatus : user = " + user + "; userSub = " + userSub);
 
-        String userDomain = user.split(AT)[DOMAIN_NAME_INDEX];
+        String userDomain = user.split(DOMAIN_SEPARATOR)[DOMAIN_NAME_INDEX];
         if (subscribing) {
             subscribers.get(userSub).computeIfAbsent(userDomain, k -> new HashSet<>()).add(user);
         } else {
@@ -304,7 +304,7 @@ public class JavaFeeds implements Feeds {
     }
 
     private Result<Void> verifyUser(String user, String pwd) {
-        String[] userInfo = user.split(AT);
+        String[] userInfo = user.split(DOMAIN_SEPARATOR);
         String userName = userInfo[USER_NAME_INDEX];
         String userDomain = userInfo[DOMAIN_NAME_INDEX];
 
@@ -319,7 +319,7 @@ public class JavaFeeds implements Feeds {
 
     private Result<Void> removeUserFromMap(String userRem, String users, Map<String, Map<String, Set<String>>> map) {
         String[] usersToUpdate = users.isEmpty() ? new String[0] : users.split(",");
-        String domain = userRem.split(AT)[DOMAIN_NAME_INDEX];
+        String domain = userRem.split(DOMAIN_SEPARATOR)[DOMAIN_NAME_INDEX];
 
         for (String u : usersToUpdate) {
             map.get(u).get(domain).remove(userRem);

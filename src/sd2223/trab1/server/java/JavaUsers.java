@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 
 public class JavaUsers implements Users {
 
-	private static final String AT = "@";
+	private static final String DOMAIN_SEPARATOR = "@";	// Used to concatenate name and domain
 
 	private final Map<String, User> users = new ConcurrentHashMap<>(); // Name -> User
 	private final Feeds feedClient; // Domain -> FeedsClient
@@ -43,7 +43,7 @@ public class JavaUsers implements Users {
 			return Result.error( ErrorCode.CONFLICT);
 		}
 
-		String nameAndDomain = user.getName().concat(AT + user.getDomain());
+		String nameAndDomain = user.getName().concat(DOMAIN_SEPARATOR + user.getDomain());
 
 		new Thread(() -> feedClient.createFeedInfo(nameAndDomain)).start();
 
@@ -108,7 +108,7 @@ public class JavaUsers implements Users {
 
 		var user = users.remove(name);
 
-		String nameAndDomain = user.getName().concat(AT + user.getDomain());
+		String nameAndDomain = user.getName().concat(DOMAIN_SEPARATOR + user.getDomain());
 
 		new Thread(() -> feedClient.deleteFeedInfo(nameAndDomain)).start();
 
